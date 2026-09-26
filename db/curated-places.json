@@ -1,0 +1,134 @@
+[
+  {
+    "name": "katz’s delicatessen",
+    "category": "food",
+    "sourceUrl": "https://katzsdelicatessen.com/home",
+    "point": [
+      40.7223,
+      -73.9874
+    ],
+    "area": "205 east houston st · pastrami",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=katz%E2%80%99s%20delicatessen%20205%20east%20houston%20st%20New%20York"
+  },
+  {
+    "name": "russ & daughters",
+    "category": "food",
+    "sourceUrl": "https://www.russanddaughters.com/",
+    "point": [
+      40.7226,
+      -73.9883
+    ],
+    "area": "179 east houston st · bagels y salmón",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=russ%20%26%20daughters%20179%20east%20houston%20st%20New%20York"
+  },
+  {
+    "name": "los tacos no. 1 · chelsea",
+    "category": "food",
+    "sourceUrl": "https://www.chelseamarket.com/directory-all/los-tacos-no-1",
+    "point": [
+      40.742,
+      -74.0061
+    ],
+    "area": "75 ninth ave · tacos en chelsea market",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=los%20tacos%20no.%201%20%C2%B7%20chelsea%2075%20ninth%20ave%20New%20York"
+  },
+  {
+    "name": "levain bakery · 74th st",
+    "category": "food",
+    "sourceUrl": "https://levainbakery.com/pages/west-74th-street",
+    "point": [
+      40.7799,
+      -73.9803
+    ],
+    "area": "167 west 74th st · cookies",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=levain%20bakery%20%C2%B7%2074th%20st%20167%20west%2074th%20st%20New%20York"
+  },
+  {
+    "name": "the met",
+    "category": "culture",
+    "sourceUrl": "https://www.metmuseum.org/plan-your-visit",
+    "point": [
+      40.7794,
+      -73.9632
+    ],
+    "area": "1000 fifth ave · arte de distintas épocas",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=the%20met%201000%20fifth%20ave%20New%20York"
+  },
+  {
+    "name": "moma",
+    "category": "culture",
+    "sourceUrl": "https://www.moma.org/visit/",
+    "point": [
+      40.7614,
+      -73.9776
+    ],
+    "area": "11 west 53rd st · arte moderno",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=moma%2011%20west%2053rd%20st%20New%20York"
+  },
+  {
+    "name": "whitney museum",
+    "category": "culture",
+    "sourceUrl": "https://whitney.org/visit",
+    "point": [
+      40.7396,
+      -74.0089
+    ],
+    "area": "99 gansevoort st · arte estadounidense",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=whitney%20museum%2099%20gansevoort%20st%20New%20York"
+  },
+  {
+    "name": "guggenheim",
+    "category": "culture",
+    "sourceUrl": "https://www.guggenheim.org/plan-your-visit",
+    "point": [
+      40.783,
+      -73.959
+    ],
+    "area": "1071 fifth ave · arte y arquitectura",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=guggenheim%201071%20fifth%20ave%20New%20York"
+  },
+  {
+    "name": "high line",
+    "category": "walk",
+    "sourceUrl": "https://www.thehighline.org/visit/",
+    "point": [
+      40.7399,
+      -74.008
+    ],
+    "area": "entrada de gansevoort st · paseo elevado",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=high%20line%20entrada%20de%20gansevoort%20st%20New%20York"
+  },
+  {
+    "name": "central park · bethesda terrace",
+    "category": "walk",
+    "sourceUrl": "https://www.centralparknyc.org/locations/bethesda-terrace",
+    "point": [
+      40.7741,
+      -73.9708
+    ],
+    "area": "bethesda terrace · central park",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=central%20park%20%C2%B7%20bethesda%20terrace%20bethesda%20terrace%20New%20York"
+  },
+  {
+    "name": "bryant park",
+    "category": "walk",
+    "sourceUrl": "https://bryantpark.org/",
+    "point": [
+      40.7536,
+      -73.9832
+    ],
+    "area": "sixth ave y 42nd st · midtown",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=bryant%20park%20sixth%20ave%20y%2042nd%20st%20New%20York"
+  },
+  {
+    "name": "brooklyn bridge park · pier 1",
+    "category": "walk",
+    "sourceUrl": "https://brooklynbridgepark.org/",
+    "point": [
+      40.7023,
+      -73.9958
+    ],
+    "area": "pier 1 · vistas de manhattan",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=brooklyn%20bridge%20park%20%C2%B7%20pier%201%20pier%201%20New%20York"
+  }
+]
