@@ -1,6 +1,6 @@
 [
   {
-    "name": "katz’s delicatessen",
+    "name": "katz’s deli",
     "category": "food",
     "sourceUrl": "https://katzsdelicatessen.com/home",
     "point": [
@@ -22,7 +22,7 @@
     "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=russ%20%26%20daughters%20179%20east%20houston%20st%20New%20York"
   },
   {
-    "name": "los tacos no. 1 · chelsea",
+    "name": "los tacos no. 1",
     "category": "food",
     "sourceUrl": "https://www.chelseamarket.com/directory-all/los-tacos-no-1",
     "point": [
@@ -33,7 +33,7 @@
     "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=los%20tacos%20no.%201%20%C2%B7%20chelsea%2075%20ninth%20ave%20New%20York"
   },
   {
-    "name": "levain bakery · 74th st",
+    "name": "levain bakery",
     "category": "food",
     "sourceUrl": "https://levainbakery.com/pages/west-74th-street",
     "point": [
@@ -99,7 +99,7 @@
     "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=high%20line%20entrada%20de%20gansevoort%20st%20New%20York"
   },
   {
-    "name": "central park · bethesda terrace",
+    "name": "central park",
     "category": "walk",
     "sourceUrl": "https://www.centralparknyc.org/locations/bethesda-terrace",
     "point": [
@@ -121,7 +121,7 @@
     "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=bryant%20park%20sixth%20ave%20y%2042nd%20st%20New%20York"
   },
   {
-    "name": "brooklyn bridge park · pier 1",
+    "name": "brooklyn bridge park",
     "category": "walk",
     "sourceUrl": "https://brooklynbridgepark.org/",
     "point": [
@@ -130,5 +130,280 @@
     ],
     "area": "pier 1 · vistas de manhattan",
     "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=brooklyn%20bridge%20park%20%C2%B7%20pier%201%20pier%201%20New%20York"
+  },
+  {
+    "name": "metrograph",
+    "category": "culture",
+    "sourceUrl": "https://metrograph.com/about/",
+    "point": [
+      40.715123257001,
+      -73.991164701987
+    ],
+    "area": "7 ludlow st · cine y librería",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=Metrograph%207%20Ludlow%20St%2C%20New%20York%2C%20NY"
+  },
+  {
+    "name": "moving image museum",
+    "category": "culture",
+    "sourceUrl": "https://movingimage.org/visit/",
+    "point": [
+      40.756179243678,
+      -73.924018616753
+    ],
+    "area": "36-01 35th ave · historia y técnica del cine",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=Museum%20of%20the%20Moving%20Image%2036-01%2035th%20Ave%2C%20Astoria%2C%20NY"
+  },
+  {
+    "name": "poster house",
+    "category": "culture",
+    "sourceUrl": "https://posterhouse.org/hours-admission-location/",
+    "point": [
+      40.743561587643,
+      -73.99331826437
+    ],
+    "area": "119 w 23rd st · afiches y diseño gráfico",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=Poster%20House%20119%20W%2023rd%20St%2C%20New%20York%2C%20NY"
+  },
+  {
+    "name": "okiboru",
+    "category": "food",
+    "sourceUrl": "https://okiboru.com/locations",
+    "point": [
+      40.719277495853,
+      -73.989762074309
+    ],
+    "area": "117 orchard st · tsukemen",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=Okiboru%20117%20Orchard%20St%2C%20New%20York%2C%20NY"
+  },
+  {
+    "name": "xi’an famous foods",
+    "category": "food",
+    "sourceUrl": "https://www.xianfoods.com/locations",
+    "point": [
+      40.715143038293,
+      -73.997333531267
+    ],
+    "area": "45 bayard st · noodles chinos",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=Xi%E2%80%99an%20Famous%20Foods%2045%20Bayard%20St%2C%20New%20York%2C%20NY"
+  },
+  {
+    "name": "japan village",
+    "category": "food",
+    "sourceUrl": "https://www.japanvillage.com/eat-drink",
+    "point": [
+      40.65597237584,
+      -74.006411216225
+    ],
+    "area": "934 3rd ave · puestos de comida japonesa",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=Japan%20Village%20934%203rd%20Ave%2C%20Brooklyn%2C%20NY"
+  },
+  {
+    "name": "ny dosas",
+    "category": "food",
+    "sourceUrl": "https://nydosas.com/contact-us/",
+    "point": [
+      40.730649098163,
+      -73.998866581357
+    ],
+    "area": "washington square south & sullivan st · dosas callejeras · consultar horarios",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=NY%20Dosas%20Washington%20Square%20South%20%26%20Sullivan%20St%2C%20New%20York%2C%20NY"
+  },
+  {
+    "name": "procell",
+    "category": "shop",
+    "sourceUrl": "https://nycvintagemap.com/store/procell/",
+    "point": [
+      40.719969254322,
+      -73.993653372858
+    ],
+    "area": "5 delancey st · vintage curado",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=Procell%205%20Delancey%20St%2C%20New%20York%2C%20NY"
+  },
+  {
+    "name": "2nd street",
+    "category": "shop",
+    "sourceUrl": "https://ec.2ndstreetusa.com/pages/stores",
+    "point": [
+      40.728855748069,
+      -73.993695785289
+    ],
+    "area": "712 broadway · segunda mano y streetwear",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=2nd%20Street%20712%20Broadway%2C%20New%20York%2C%20NY"
+  },
+  {
+    "name": "aimé leon dore",
+    "category": "shop",
+    "sourceUrl": "https://www.aimeleondore.com/pages/store-new-york",
+    "point": [
+      40.722337393426,
+      -73.995936687103
+    ],
+    "area": "224 mulberry st · ropa, diseño y café",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=Aim%C3%A9%20Leon%20Dore%20224%20Mulberry%20St%2C%20New%20York%2C%20NY"
+  },
+  {
+    "name": "film forum",
+    "category": "culture",
+    "sourceUrl": "https://filmforum.org/",
+    "point": [
+      40.728447591294,
+      -74.004678341562
+    ],
+    "area": "209 w houston st · cine independiente y clásicos",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=Film%20Forum%20209%20W%20Houston%20St%2C%20New%20York%2C%20NY"
+  },
+  {
+    "name": "kinokuniya",
+    "category": "shop",
+    "sourceUrl": "https://usa.kinokuniya.com/stores-kinokuniya-new-york",
+    "point": [
+      40.754067129807,
+      -73.984911886037
+    ],
+    "area": "1073 avenue of the americas · libros japoneses y diseño",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=Kinokuniya%201073%20Avenue%20of%20the%20Americas%2C%20New%20York%2C%20NY"
+  },
+  {
+    "name": "chinatown ice cream",
+    "category": "food",
+    "sourceUrl": "https://www.chinatownicecreamfactory.com/",
+    "point": [
+      40.715315663589,
+      -73.998194855637
+    ],
+    "area": "65 bayard st · helados de sabores asiáticos",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=Chinatown%20Ice%20Cream%20Factory%2065%20Bayard%20St%2C%20New%20York%2C%20NY"
+  },
+  {
+    "name": "yoseka",
+    "category": "shop",
+    "sourceUrl": "https://yosekastationery.com/pages/about-us",
+    "point": [
+      40.728534637358,
+      -73.959175252337
+    ],
+    "area": "63 west st · papelería y diseño taiwanés",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=Yoseka%2063%20West%20St%2C%20Brooklyn%2C%20NY"
+  },
+  {
+    "name": "nitehawk cinema",
+    "category": "culture",
+    "sourceUrl": "https://nitehawkcinema.com/williamsburg/about/",
+    "point": [
+      40.716101425102,
+      -73.962472609227
+    ],
+    "area": "136 metropolitan ave · cine y comida en la sala",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=Nitehawk%20Cinema%20136%20Metropolitan%20Ave%2C%20Brooklyn%2C%20NY"
+  },
+  {
+    "name": "transit museum",
+    "category": "culture",
+    "sourceUrl": "https://www.nytransitmuseum.org/know-before-you-visit/",
+    "point": [
+      40.690569980392,
+      -73.990073881107
+    ],
+    "area": "99 schermerhorn st · subtes, carteles e historia",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=Transit%20Museum%2099%20Schermerhorn%20St%2C%20Brooklyn%2C%20NY"
+  },
+  {
+    "name": "roxy cinema",
+    "category": "culture",
+    "sourceUrl": "https://www.roxycinemanewyork.com/faqs/",
+    "point": [
+      40.719161113128,
+      -74.004912196661
+    ],
+    "area": "2 avenue of the americas · cine de culto y clásicos",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=Roxy%20Cinema%202%20Avenue%20of%20the%20Americas%2C%20New%20York%2C%20NY"
+  },
+  {
+    "name": "film at lincoln center",
+    "category": "culture",
+    "sourceUrl": "https://www.filmlinc.org/visit-us/",
+    "point": [
+      40.773464362497,
+      -73.98355854395
+    ],
+    "area": "144 w 65th st · cine y retrospectivas",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=Film%20at%20Lincoln%20Center%20144%20W%2065th%20St%2C%20New%20York%2C%20NY"
+  },
+  {
+    "name": "studio museum",
+    "category": "culture",
+    "sourceUrl": "https://www.studiomuseum.org/visit",
+    "point": [
+      40.808469495181,
+      -73.94751862341
+    ],
+    "area": "144 w 125th st · arte de la diáspora africana",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=Studio%20Museum%20144%20W%20125th%20St%2C%20New%20York%2C%20NY"
+  },
+  {
+    "name": "the cloisters",
+    "category": "culture",
+    "sourceUrl": "https://www.metmuseum.org/plan-your-visit/met-cloisters",
+    "point": [
+      40.865187989951,
+      -73.931641370958
+    ],
+    "area": "99 margaret corbin dr · arte y arquitectura medieval",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=The%20Cloisters%2099%20Margaret%20Corbin%20Dr%2C%20New%20York%2C%20NY"
+  },
+  {
+    "name": "new world mall",
+    "category": "food",
+    "sourceUrl": "https://www.newworldmallnyc.com/food-court",
+    "point": [
+      40.759705636073,
+      -73.829161456707
+    ],
+    "area": "136-20 roosevelt ave · patio de comida asiática",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=New%20World%20Mall%20136-20%20Roosevelt%20Ave%2C%20Flushing%2C%20NY"
+  },
+  {
+    "name": "kith",
+    "category": "shop",
+    "sourceUrl": "https://kith.com/pages/kith-manhattan",
+    "point": [
+      40.725992238487,
+      -73.994420400818
+    ],
+    "area": "337 lafayette st · streetwear y sneakers",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=Kith%20337%20Lafayette%20St%2C%20New%20York%2C%20NY"
+  },
+  {
+    "name": "ippudo",
+    "category": "food",
+    "sourceUrl": "https://www.ippudous.com/east-village",
+    "point": [
+      40.730923605492,
+      -73.990170440632
+    ],
+    "area": "65 4th ave · ramen tonkotsu",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=Ippudo%2065%204th%20Ave%2C%20New%20York%2C%20NY"
+  },
+  {
+    "name": "oculus",
+    "category": "walk",
+    "sourceUrl": "https://www.explorewtc.com/en/local/things-to-do/events/oculus-10-year-anniversary-celebration.html",
+    "point": [
+      40.711790654208,
+      -74.01185241249
+    ],
+    "area": "185 greenwich st · arquitectura de Calatrava",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=Oculus%20185%20Greenwich%20St%2C%20New%20York%2C%20NY"
+  },
+  {
+    "name": "museum of nyc",
+    "category": "culture",
+    "sourceUrl": "https://www.mcny.org/visit",
+    "point": [
+      40.79254459161,
+      -73.952004282713
+    ],
+    "area": "1220 5th ave · historia visual de Nueva York",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=Museum%20of%20the%20City%20of%20New%20York%201220%205th%20Ave%2C%20New%20York%2C%20NY"
   }
 ]

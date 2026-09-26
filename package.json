@@ -6,5 +6,8 @@
     "dev": "node --watch --disable-warning=ExperimentalWarning server.mjs",
     "check": "node --check server.mjs && node --check dist/app.js && node --check scripts/enrich-photos.mjs",
     "enrich-photos": "node --disable-warning=ExperimentalWarning scripts/enrich-photos.mjs"
+  },
+  "dependencies": {
+    "sharp": "^0.35.4"
   }
 }

@@ -5,6 +5,8 @@ import { dirname, extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DatabaseSync } from 'node:sqlite';
 import { randomUUID } from 'node:crypto';
+import { createBackups } from './backups.mjs';
+import { readImageBody, validatePhoto, servePhotoVariant } from './images.mjs';
 
 const root = dirname(fileURLToPath(import.meta.url));
 const publicRoot = join(root, 'dist');
@@ -13,11 +15,29 @@ mkdirSync(dataRoot, { recursive: true });
 const photoRoot = join(dataRoot, 'photos');
 mkdirSync(photoRoot, { recursive: true });
 const database = new DatabaseSync(join(dataRoot, 'places.sqlite'));
-database.exec(await readFile(join(root, 'db/0001_places.sql'), 'utf8'));
+const placesSchema = await readFile(join(root, 'db/0001_places.sql'), 'utf8');
+database.exec(placesSchema);
+if (!database.prepare('PRAGMA table_info(places)').all().some(column => column.name === 'visited')) {
+  database.exec('ALTER TABLE places ADD COLUMN visited INTEGER NOT NULL DEFAULT 0 CHECK (visited IN (0, 1))');
+}
+
+// SQLite CHECK constraints need a table migration when adding a category.
+const currentPlacesSchema = database.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'places'").get().sql;
+if (!currentPlacesSchema.includes("'shop'")) {
+  database.exec('BEGIN IMMEDIATE');
+  try {
+    database.exec(currentPlacesSchema.replace(/CREATE TABLE\s+"?places"?/i, 'CREATE TABLE places_with_shop').replace("'walk'", "'walk', 'shop'"));
+    database.exec('INSERT INTO places_with_shop SELECT * FROM places');
+    database.exec('DROP TABLE places');
+    database.exec('ALTER TABLE places_with_shop RENAME TO places');
+    database.exec(placesSchema);
+    database.exec('COMMIT');
+  } catch (error) {database.exec('ROLLBACK');throw error;}
+}
 
 const selectPlaces = database.prepare(`
   SELECT id, source_url, canonical_url, place_id, name, latitude, longitude,
-         category, area, google_types_json, photo_url, enrichment_status, created_at
+         category, area, google_types_json, photo_url, enrichment_status, created_at, visited
   FROM places ORDER BY created_at ASC
 `);
 const findBySource = database.prepare('SELECT id FROM places WHERE source_url = ?');
@@ -30,7 +50,7 @@ const insertPlace = database.prepare(`
   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, '', NULL, ?, 'link_only', ?)
 `);
 
-const types = { '.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.webp':'image/webp','.gif':'image/gif' };
+const types = { '.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.json':'application/json; charset=utf-8','.geojson':'application/geo+json; charset=utf-8','.svg':'image/svg+xml','.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.webp':'image/webp','.gif':'image/gif' };
 function sendJson(response,status,value){response.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store'});response.end(JSON.stringify(value));}
 function isGoogleMapsUrl(url){const host=url.hostname.toLowerCase();const googleHost=host==='maps.app.goo.gl'||host==='goo.gl'||/^(?:www\.|maps\.)?google\.[a-z.]{2,}$/.test(host);return googleHost&&(host==='maps.app.goo.gl'||url.pathname.startsWith('/maps')||url.searchParams.has('q')||url.searchParams.has('query'));}
 function decodeText(value){try{return decodeURIComponent(value.replace(/\+/g,' ')).replace(/&amp;/g,'&').trim();}catch{return value.replace(/\+/g,' ').trim();}}
@@ -77,9 +97,9 @@ async function resolveGoogleMapsLink(source){
   throw new Error('El link tiene demasiadas redirecciones.');
 }
 
-function serializePlace(row){return {id:row.id,sourceUrl:row.source_url,googleMapsUrl:row.canonical_url,placeId:row.place_id,name:row.name,point:[row.latitude,row.longitude],category:row.category,area:row.area,googleTypes:row.google_types_json?JSON.parse(row.google_types_json):[],photoUrl:row.photo_url,enrichmentStatus:row.enrichment_status,createdAt:row.created_at};}
+function serializePlace(row){return {id:row.id,visited:Boolean(row.visited),sourceUrl:row.source_url,googleMapsUrl:row.canonical_url,placeId:row.place_id,name:row.name,point:[row.latitude,row.longitude],category:row.category,area:row.area,googleTypes:row.google_types_json?JSON.parse(row.google_types_json):[],photoUrl:row.photo_url,enrichmentStatus:row.enrichment_status,createdAt:row.created_at};}
 async function readBody(request){const chunks=[];let size=0;for await(const chunk of request){size+=chunk.length;if(size>16384)throw new Error('La solicitud es demasiado grande.');chunks.push(chunk);}return JSON.parse(Buffer.concat(chunks).toString('utf8'));}
-async function readImageBody(request){const chunks=[];let size=0;for await(const chunk of request){size+=chunk.length;if(size>10_000_000)throw new Error('La foto es demasiado grande.');chunks.push(chunk);}if(!size)throw new Error('La foto está vacía.');return Buffer.concat(chunks);}
+
 
 function wikimediaFilePage(photoUrl){
   try{
@@ -99,12 +119,14 @@ async function cachePhoto(row,remoteUrl){
   const mime=(response.headers.get('content-type')||'').split(';')[0].trim().toLowerCase();
   const extensions={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif'};
   const extension=extensions[mime];if(!extension)throw new Error('La foto tiene un formato no compatible.');
-  const bytes=Buffer.from(await response.arrayBuffer());if(bytes.length>10_000_000)throw new Error('La foto es demasiado grande.');
+  const bytes=await readImageBody(response.body);
+  await validatePhoto(bytes);
   const fileName=`${row.id}-${Date.now()}.${extension}`;await writeFile(join(photoRoot,fileName),bytes);
   const localUrl=`/photos/${fileName}`;savePhotoUrl.run(localUrl,row.id);return localUrl;
 }
 
 async function saveUploadedPhoto(row,mime,bytes){
+  await validatePhoto(bytes);
   const extensions={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif'};
   const extension=extensions[mime];if(!extension)throw new Error('Usá una foto JPG, PNG, WEBP o GIF.');
   const fileName=`${row.id}-${Date.now()}.${extension}`;await writeFile(join(photoRoot,fileName),bytes);
@@ -162,6 +184,19 @@ async function wikimediaPhotoForPlace(row){
 }
 
 async function handleApi(request,response,url){
+  const visitedMatch = url.pathname.match(/^\/api\/places\/([^/]+)\/visited$/);
+  if (visitedMatch) {
+    if (request.method !== 'PATCH') {sendJson(response,405,{error:'Método no permitido.'});return true;}
+    try {
+      const id = decodeURIComponent(visitedMatch[1]);
+      if (!findById.get(id)) {sendJson(response,404,{error:'Lugar no encontrado.'});return true;}
+      const body = await readBody(request);
+      if (typeof body.visited !== 'boolean') throw new Error('Indicá si el lugar fue visitado.');
+      database.prepare('UPDATE places SET visited = ? WHERE id = ?').run(Number(body.visited),id);
+      sendJson(response,200,{visited:body.visited});
+    } catch (error) {sendJson(response,400,{error:error.message});}
+    return true;
+  }
   const photoMatch=url.pathname.match(/^\/api\/places\/([^/]+)\/photo$/);
   if(photoMatch&&request.method==='PUT'){
     try{
@@ -174,7 +209,7 @@ async function handleApi(request,response,url){
         photoUrl=await saveUploadedPhoto(row,mime,await readImageBody(request));
       }else throw new Error('Arrastrá un archivo de imagen o una imagen desde otra página.');
       sendJson(response,200,{photoUrl,sourceUrl:null,author:null});
-    }catch(error){sendJson(response,400,{error:error.message});}
+    }catch(error){sendJson(response,error.statusCode||400,{error:error.message});}
     return true;
   }
   if(photoMatch&&request.method==='GET'){
@@ -186,7 +221,7 @@ async function handleApi(request,response,url){
         sendJson(response,200,{photoUrl:await cachePhoto(row,row.photo_url),sourceUrl:row.photo_url,author:{name:'sitio oficial',url:row.photo_url}});
       }
     }
-    catch(error){sendJson(response,400,{error:error.message});}
+    catch(error){sendJson(response,error.statusCode||400,{error:error.message});}
     return true;
   }
   if(url.pathname!=='/api/places')return false;
@@ -194,7 +229,7 @@ async function handleApi(request,response,url){
   if(request.method==='POST'){
     try{
       const body=await readBody(request);const sourceUrl=String(body.url||'').trim();const category=String(body.category||'');
-      if(!['food','culture','walk'].includes(category))throw new Error('Elegí una categoría válida.');
+      if(!['food','culture','walk','shop'].includes(category))throw new Error('Elegí una categoría válida.');
       if(findBySource.get(sourceUrl)){sendJson(response,409,{error:'Ese link ya está guardado.'});return true;}
       const resolved=await resolveGoogleMapsLink(sourceUrl);const id=randomUUID();const createdAt=new Date().toISOString();
       insertPlace.run(id,sourceUrl,resolved.canonicalUrl,resolved.placeId,resolved.name,resolved.latitude,resolved.longitude,category,resolved.photoUrl,createdAt);
@@ -214,6 +249,12 @@ async function serveStatic(response,pathname){
   if(!file.startsWith(`${base}/`)){response.writeHead(403).end('Forbidden');return;}
   try{const body=await readFile(file);response.writeHead(200,{'content-type':types[extname(file)]||'application/octet-stream','cache-control':isPhoto?'public, max-age=31536000, immutable':'no-cache'});response.end(body);}catch{response.writeHead(404).end('Not found');}
 }
+const saveBackup=createBackups(database,root);
+const backupSafely=()=>saveBackup().catch(error=>process.stderr.write(`Backup pendiente: ${error.message}\n`));
+let backupTimer;
+function scheduleBackup(){clearTimeout(backupTimer);backupTimer=setTimeout(backupSafely,2000);backupTimer.unref();}
+backupSafely();
+setInterval(backupSafely,10*60*1000).unref();
 const port=Number(process.env.PORT||4173);
 const host=process.env.HOST||'0.0.0.0';
-createServer(async(request,response)=>{const url=new URL(request.url,`http://${request.headers.host||'127.0.0.1'}`);if(await handleApi(request,response,url))return;await serveStatic(response,url.pathname);}).listen(port,host,()=>{process.stdout.write(`paz y tato: http://${host}:${port}\n`);});
+createServer(async(request,response)=>{if(['POST','PUT','PATCH','DELETE'].includes(request.method))response.once('finish',()=>{if(response.statusCode<400)scheduleBackup();});const url=new URL(request.url,`http://${request.headers.host||'127.0.0.1'}`);if(await handleApi(request,response,url))return;if(await servePhotoVariant(response,url,photoRoot))return;await serveStatic(response,url.pathname);}).listen(port,host,()=>{process.stdout.write(`paz y tato: http://${host}:${port}\n`);});

@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS places (
   name TEXT NOT NULL,
   latitude REAL NOT NULL CHECK (latitude BETWEEN -90 AND 90),
   longitude REAL NOT NULL CHECK (longitude BETWEEN -180 AND 180),
-  category TEXT NOT NULL CHECK (category IN ('food', 'culture', 'walk')),
+  category TEXT NOT NULL CHECK (category IN ('food', 'culture', 'walk', 'shop')),
   area TEXT NOT NULL DEFAULT '',
   google_types_json TEXT,
   photo_url TEXT,

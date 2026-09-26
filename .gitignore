@@ -3,3 +3,7 @@ data/*.sqlite-shm
 data/*.sqlite-wal
 data/photos/
 .env
+
+node_modules/
+
+backups/
