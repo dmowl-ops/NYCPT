@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>paz y tato conquistan américa — nyc, diciembre 2026</title>
+  <meta name="description" content="nuestro viaje a nueva york. un mapa de lugares, una colección de ideas y todo lo que está por venir.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='32' fill='%230c0c0c'/%3E%3Ctext x='32' y='43' font-size='38' font-weight='700' font-family='Helvetica,Arial' text-anchor='middle' fill='%23ff613a'%3Ep%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <link rel="stylesheet" href="style.css">
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#mapa">ir al mapa</a>
+  <header class="masthead">
+    <a class="brand" href="#inicio" aria-label="paz y tato, inicio"><span class="bullet">p</span><span class="bullet">t</span><span class="brand-text">conquistan<br>américa</span></a>
+    <nav aria-label="principal"><a class="nav-active" href="#mapa">el mapa <span>01</span></a><a href="#links">los links <span>02</span></a></nav>
+    <span class="edition">nyc / diciembre 2026</span>
+  </header>
+  <main id="inicio">
+    <section class="hero" aria-labelledby="trip-title">
+      <div class="hero-title"><div class="eyebrow">próxima parada: nueva york</div><h1 id="trip-title">paz y tato<br>conquistan<br>américa<span class="period">.</span></h1><p>un viaje de a dos. una ciudad entera.</p></div>
+      <div class="departure"><div class="departure-top"><span>nos vamos el</span><strong>23.12.26</strong></div><div class="countdown" aria-label="tiempo hasta el viaje"><div><strong id="days">--</strong><span>días</span></div><b aria-hidden="true">:</b><div><strong id="hours">--</strong><span>horas</span></div><b aria-hidden="true">:</b><div><strong id="minutes">--</strong><span>minutos</span></div></div><div class="departure-bottom"><span id="count-label">cada vez falta menos.</span><span aria-hidden="true">↗</span></div></div>
+    </section>
+    <section id="mapa" class="map-section" aria-labelledby="map-heading">
+      <div class="section-bar"><h2 id="map-heading">01 / nuestro mapa</h2><span>una ciudad, muchas formas de recorrerla.</span><button class="text-button" id="reset-map">ver todo ↗</button></div>
+      <div class="map-frame">
+        <div id="map" role="region" aria-label="mapa de nueva york con lugares de ejemplo"><div id="map-fallback">cargando nueva york…</div></div>
+        <aside class="map-legend" aria-label="capas del mapa"><div class="legend-heading">elegí tu<br>propia línea.</div><div class="layer-buttons"><button data-layer="food" class="layer food" aria-pressed="true"><span class="line-symbol">c</span><span>comer</span><span class="layer-count">03</span></button><button data-layer="culture" class="layer culture" aria-pressed="true"><span class="line-symbol">m</span><span>mirar</span><span class="layer-count">03</span></button><button data-layer="walk" class="layer walk" aria-pressed="true"><span class="line-symbol">p</span><span>perderse</span><span class="layer-count">03</span></button></div><p>tocá una línea para<br>mostrarla u ocultarla.</p></aside>
+        <aside class="station-panel" aria-live="polite"><div class="panel-top"><span id="station-category">por dónde empezamos</span><span id="station-number">↙</span></div><h3 id="station-title">la ciudad<br>es nuestra.</h3><p id="station-description">elegí una parada del mapa y empezá a imaginar el recorrido.</p><a id="station-link" target="_blank" rel="noopener noreferrer" hidden>ver lugar ↗</a><div class="station-footer">9 paradas de ejemplo<br>todavía no son nuestro itinerario.</div></aside>
+        <div class="map-caption"><span class="mini-route" aria-hidden="true">●━━●━━●</span><span>las líneas conectan ideas.<br>no son recorridos reales de subte.</span></div>
+      </div>
+      <div class="map-bottom"><span>manhattan & brooklyn</span><span>comida / museos / paseos</span><span>arrastrá para explorar · + / − para acercar</span></div>
+      <details class="station-index"><summary>ver las 9 paradas de ejemplo en una lista <span>+</span></summary><div id="station-list"></div></details>
+    </section>
+    <section id="links" class="links-section" aria-labelledby="links-heading"><div class="links-intro"><span class="eyebrow">02 / la previa también es parte</span><h2 id="links-heading">lo vimos.<br>lo guardamos.<br>¿vamos?</h2><p>ese reel, ese café, ese lugar que nos pasaron.<br>todo empieza con un link.</p><button class="primary" id="add-link">sumar un link <span>+</span></button></div><div class="link-collection"><div class="collection-header"><h3>nuestra bandeja <span id="link-count">00</span></h3><button class="text-button" id="export-links" disabled>exportar ↗</button></div><div id="link-items"><div class="empty-links"><span class="empty-symbol">↗</span><h4>la primera idea<br>va acá.</h4><p>pegá un link y elegí su línea.</p></div></div><div class="storage-setting"><label><input type="checkbox" id="remember"> guardar los links en este navegador</label><p id="storage-note">sin activar esta opción, se conservan solo mientras esta página esté abierta. podés exportarlos antes de salir. todavía no se sincronizan entre dispositivos.</p></div></div></section>
+  </main>
+  <footer><div class="footer-brand"><span class="bullet">p</span><span class="bullet">t</span><strong>próxima parada,<br>juntos.</strong></div><span>buenos aires → nueva york<br>23 de diciembre de 2026</span><a href="#inicio">volver arriba ↑</a></footer>
+  <dialog id="link-dialog" aria-labelledby="dialog-title"><form id="link-form"><div class="dialog-heading"><h2 id="dialog-title">una idea más.</h2><button type="button" id="close-dialog" aria-label="cerrar">×</button></div><label>el link<input id="url-input" name="url" type="url" placeholder="https://…" required></label><label>cómo lo llamamos<input name="title" maxlength="100" placeholder="ese café que tenemos que conocer" required></label><label>su línea<select name="category"><option value="food">comer — comida y cafés</option><option value="culture">mirar — museos y cultura</option><option value="walk">perderse — paseos y lugares</option></select></label><p>queda en la bandeja. después podemos ubicarlo en el mapa.</p><p id="form-error" role="alert"></p><button class="primary" type="submit">sumar a la bandeja <span>+</span></button></form></dialog>
+  <div class="toast" id="toast" role="status" hidden></div>
+</body></html>
