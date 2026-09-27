@@ -55,3 +55,11 @@ Esta computadora es el servidor de datos para ambos: entrar por su URL del wifi,
 Para restaurar: detener el servidor, conservar una copia del estado actual, reemplazar `data/places.sqlite` por el snapshot elegido y copiar `backups/photos/` dentro de `data/photos/`. Reiniciar después. Los backups están en el mismo disco: protegen ante cambios accidentales, no ante pérdida de la computadora.
 
 Las imágenes de la lista usan un contenedor sticky, a 16 px del borde inferior del viewport, limitado por su categoría. La altura real de foto y caption se mide para mantener ese margen al cambiar de tamaño.
+
+Ajuste mobile: categorías en dos columnas; orden título → categorías → mapa → card large → agregar/créditos. Lista con 4 columnas para foto y 8 para nombres, selección por toque y controles de al menos 44 px. Popup con altura acotada y scroll interno para no salir del mapa. Pendiente revisión visual por el usuario.
+
+Mobile compacto: Cambiar foto oculto; controles del mapa de 40 px. La altura del mapa descuenta título, categorías, agregar y créditos medidos del viewport. La card large seleccionada queda después del bloque principal; formularios abiertos y pantallas muy bajas pueden requerir scroll.
+
+La vista mobile del mapa ahora ocupa 100svh con scroll-snap proximity (sin animación forzada), filtros y capas desplegables y cards small compactas. Los créditos permanecen visibles. Cambiar foto se oculta en mobile. Volver aparece al abrir un punto y cierra la selección para encuadrar los lugares de las categorías visibles; también funciona en desktop. La card large queda debajo del mapa en mobile.
+
+Revisión mobile: navegación fija Inicio / Mapa / Lista (48 px); mapa ocupa el viewport restante. Categorías C/M/P/S y overlays B (barrios) / T (subtes) siempre visibles arriba, controles uniformes de 40 px. Zoom y Volver abajo; Agregar lugar con texto en una fila completa. Encuadre reserva el espacio de controles. Lista inferior sin altura mínima artificial entre links.

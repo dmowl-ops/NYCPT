@@ -125,7 +125,7 @@ function mapPadding() {
   const controlHeight = controls?.getBoundingClientRect().height || 50;
   const bottomInset = controls ? parseFloat(getComputedStyle(controls).bottom) || 16 : 16;
   const margin = 40;
-  return {paddingTopLeft:[margin,margin], paddingBottomRight:[margin,controlHeight + bottomInset + margin], maxZoom:15};
+  return {paddingTopLeft:[margin,matchMedia('(max-width: 680px)').matches ? 108 : margin], paddingBottomRight:[margin,controlHeight + bottomInset + margin], maxZoom:15};
 }
 let overviewZoom = 13;
 let zoomLevel = 0;
@@ -302,7 +302,7 @@ function createMapCard({name,variant='subway',badges=[],details=[],action,color=
   return card;
 }
 function bindCardPopup(layer,card,{variant='subway',autoPan=true}={}) {
-  layer.bindPopup(card,{className:'map-popup map-popup--'+variant,maxWidth:300,minWidth:200,autoPan,closeButton:false,closeOnClick:true});
+  layer.bindPopup(card,{className:'map-popup map-popup--'+variant,maxWidth:matchMedia('(max-width: 680px)').matches ? Math.min(240,map.getSize().x-48) : 300,minWidth:160,autoPan,closeButton:false,closeOnClick:true});
 }
 function showSidebarCard(card, {color='var(--paper)',ink='var(--ink)',station=null} = {}) {
   const panel=$('.station-panel');
@@ -409,7 +409,7 @@ async function uploadPhoto(group,file,url) {
 function setPhotoSource(image, url) {
   if (url.startsWith('/photos/')) {
     const widths = [160, 320, 480, 640, 960, 1280, 1920];
-    image.sizes = '(max-width: 680px) calc(32.5vw - 24px), calc(25vw - 20px)';
+    image.sizes = '(max-width: 680px) calc(33.333vw - 22px), calc(25vw - 20px)';
     image.srcset = widths.map(width => `${url}?w=${width} ${width}w`).join(', ');
     image.src = `${url}?w=640`;
   } else image.src = url;
@@ -510,7 +510,7 @@ function addStationToList(station) {
   button.setAttribute('aria-label', 'ver foto de ' + station.name);
   button.append(element('span', 'place-row-name', station.name), element('span', 'place-row-number', String(stationNumber(station))));
   const activate = () => previewPlace(station, row, button);
-  button.addEventListener('pointerenter', activate);
+  button.addEventListener('pointerenter', event => {if(event.pointerType !== 'touch')activate();});
   button.addEventListener('focus', activate);
   button.addEventListener('click', activate);
   row.append(button); group.rows.append(row);
@@ -763,9 +763,58 @@ if (window.L) {
     } catch(error){notify(error.message);}
     finally{setOverlayBusy(neighborhoodButton,false);}
   });
-  $('#reset-map').addEventListener('click',()=>{clearSelectedStation();map.closePopup();fitPlaces();});
+  const backButton=element('button','button button--control button--solid map-return');
+  backButton.type='button';backButton.setAttribute('aria-label','Volver a los lugares visibles');
+  const backArrow=element('span','ui-symbol','←');backArrow.setAttribute('aria-hidden','true');
+  backButton.append(backArrow,element('span','','Volver'));
+  backButton.hidden=true;
+  $('.map-viewport').append(backButton);
+  function returnToPlaces(){
+    clearSelectedStation();map.closePopup();$('.station-panel').hidden=true;fitPlaces();
+    backButton.hidden=true;
+  }
+  backButton.addEventListener('click',returnToPlaces);
+  $('#reset-map').addEventListener('click',returnToPlaces);
+  map.on('popupopen',()=>{backButton.hidden=false;});
+
   const observer = new ResizeObserver(() => map.invalidateSize({pan:false}));
   observer.observe($('#map'));
+  const viewport=$('.map-viewport');
+  const sidebar=$('.map-sidebar');
+  const legend=$('.map-legend');
+  const footer=$('.map-sidebar-footer');
+  const heading=$('.map-heading');
+  const credits=$('#map-credits');
+  const overlayOptions=$('.map-overlays');
+  const toolbar=element('div','map-filter-toolbar');
+  viewport.append(toolbar);
+  const bottom=$('.map-bottom');
+  for(const [id,label,glyph] of [['toggle-neighborhoods','Barrios','B'],['toggle-subway','Subtes','T']]) {
+    const button=$('#'+id);
+    const state=button.querySelector('.ui-symbol');
+    button.replaceChildren(element('span','overlay-label',label),element('span','overlay-glyph',glyph),state);
+    button.setAttribute('aria-label',label);button.title=label;
+  }
+  for(const button of document.querySelectorAll('[data-layer]')) {
+    button.setAttribute('aria-label',categories[button.dataset.layer].label);
+    button.title=categories[button.dataset.layer].label;
+  }
+  const phone=matchMedia('(max-width: 680px)');
+  function setMapLayout() {
+    if(phone.matches) {
+      viewport.append(heading,credits);
+      toolbar.append(legend,overlayOptions);
+      bottom.append(backButton,footer);
+      credits.classList.add('map-note-mobile');
+    } else {
+      sidebar.prepend(heading,legend);
+      sidebar.append(footer);footer.append(credits);
+      bottom.append(overlayOptions);viewport.append(backButton);
+      credits.classList.remove('map-note-mobile');
+    }
+    map.invalidateSize({pan:false});
+  }
+  phone.addEventListener('change',setMapLayout);setMapLayout();
   for(const button of document.querySelectorAll('[data-layer]')) button.addEventListener('click',()=>{
     const key=button.dataset.layer;
     const alreadySolo=map.hasLayer(layers[key]) && Object.values(layers).filter(group=>map.hasLayer(group)).length===1;
