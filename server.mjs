@@ -1,6 +1,6 @@
 import { createServer } from 'node:http';
 import { readFile, writeFile } from 'node:fs/promises';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, existsSync } from 'node:fs';
 import { dirname, extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DatabaseSync } from 'node:sqlite';
@@ -33,6 +33,25 @@ if (!currentPlacesSchema.includes("'shop'")) {
     database.exec(placesSchema);
     database.exec('COMMIT');
   } catch (error) {database.exec('ROLLBACK');throw error;}
+}
+
+// A portable snapshot initializes a new (or empty) local database after cloning.
+// Never replace places or visits already saved on the receiving computer.
+const snapshotPath=join(root,'db/places.snapshot.sqlite');
+if(database.prepare('SELECT COUNT(*) AS count FROM places').get().count===0 && existsSync(snapshotPath)) {
+  const snapshot=new DatabaseSync(snapshotPath,{readOnly:true});
+  try {
+    const rows=snapshot.prepare('SELECT * FROM places').all();
+    if(rows.length) {
+      const columns=database.prepare('PRAGMA table_info(places)').all().map(column=>column.name);
+      const insert=database.prepare(`INSERT INTO places (${columns.map(name=>`"${name}"`).join(',')}) VALUES (${columns.map(()=>'?').join(',')})`);
+      database.exec('BEGIN IMMEDIATE');
+      try {
+        for(const row of rows)insert.run(...columns.map(name=>row[name] ?? (name==='visited' ? 0 : null)));
+        database.exec('COMMIT');
+      } catch(error) {database.exec('ROLLBACK');throw error;}
+    }
+  } finally {snapshot.close();}
 }
 
 const selectPlaces = database.prepare(`

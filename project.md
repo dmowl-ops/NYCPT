@@ -6,8 +6,8 @@ Sitio personal para planear y mostrar nuestro viaje a NYC. Salida: 23 de diciemb
 
 - HTML, CSS y JavaScript vanilla en `dist/`. No usamos Next.js todavía; la migración queda para más adelante. GSAP o Three.js no la requieren.
 - `server.mjs`: servidor Node, API y SQLite. `images.mjs`: originales y variantes de imagen con Sharp.
-- `data/places.sqlite`: datos vivos (lugares, fotos y visitados). `data/photos/`: fotos locales. Ambos están fuera de Git; compartir el repo no sincroniza estos datos.
-- `db/curated-places.json`: selección de referencia; no se importa automáticamente al iniciar. `db/research-neighborhoods.md`: selección por barrios y fuentes.
+- `data/places.sqlite`: datos vivos (lugares, fotos y visitados). `data/photos/`: originales ahora incluidos en Git; las variantes regenerables quedan fuera. La base viva sigue fuera de Git, pero `db/places.snapshot.sqlite` contiene la copia de traslado.
+- `db/curated-places.json`: selección de referencia. `db/places.snapshot.sqlite` se importa automáticamente al iniciar si la base local está vacía o no existe; nunca reemplaza una base con lugares. `db/research-neighborhoods.md`: selección por barrios y fuentes.
 - `npm run dev`: servidor local en puerto 4173, escuchando en `0.0.0.0`. En el mismo wifi se usa la IP local del equipo. No hay despliegue público.
 
 ## Lo que ya funciona
@@ -63,3 +63,9 @@ Mobile compacto: Cambiar foto oculto; controles del mapa de 40 px. La altura del
 La vista mobile del mapa ahora ocupa 100svh con scroll-snap proximity (sin animación forzada), filtros y capas desplegables y cards small compactas. Los créditos permanecen visibles. Cambiar foto se oculta en mobile. Volver aparece al abrir un punto y cierra la selección para encuadrar los lugares de las categorías visibles; también funciona en desktop. La card large queda debajo del mapa en mobile.
 
 Revisión mobile: navegación fija Inicio / Mapa / Lista (48 px); mapa ocupa el viewport restante. Categorías C/M/P/S y overlays B (barrios) / T (subtes) siempre visibles arriba, controles uniformes de 40 px. Zoom y Volver abajo; Agregar lugar con texto en una fila completa. Encuadre reserva el espacio de controles. Lista inferior sin altura mínima artificial entre links.
+
+## Traslado a otra computadora · 27/09/2026
+
+El repo incluye un snapshot consistente de los 40 lugares y los originales de las fotos. Después de `git pull`, ejecutar `npm install` y `npm run dev`. El servidor importa el snapshot si la base está vacía, incluyendo IDs, categorías, enlaces, fotos y visitados. Si ya hay lugares locales, los conserva y no importa encima. La otra computadora pasa a ser el servidor principal. No hace falta mantener la anterior encendida.
+
+Esto es una copia de traslado, no sincronización continua: los cambios posteriores se guardan en la base viva y sus backups. No subir `.env`, backups ni variantes de imágenes.

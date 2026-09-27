@@ -1,7 +1,7 @@
 data/*.sqlite
 data/*.sqlite-shm
 data/*.sqlite-wal
-data/photos/
+data/photos/variants/
 .env
 
 node_modules/
