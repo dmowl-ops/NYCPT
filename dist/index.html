@@ -18,19 +18,37 @@
   <nav class="mobile-section-nav" aria-label="Secciones"><a href="#inicio">Inicio</a><a href="#mapa">Mapa</a><a href="#lugares">Lista</a></nav>
   <main>
     <section class="hero" id="inicio" aria-labelledby="trip-title">
-  <header class="masthead">
-    <a class="brand" href="#inicio" aria-label="paz y tato, inicio"><span class="route-bullet route-red">P</span><span class="route-bullet route-yellow">T</span><span class="route-bullet route-blue">N</span><span class="route-bullet route-green">Y</span><span class="route-bullet route-purple">C</span></a>
-    <nav aria-label="principal"><a href="#mapa">mapa</a><a href="#lugares">lugares</a><a href="#links">links</a></nav>
-  </header>
-      <div class="hero-title">
-        <h1 class="text-subtitle" id="trip-title">paz y tato conquistan américa</h1>
-        <p class="text-detail">nyc · 23.12.26</p>
+      <h1 class="visually-hidden" id="trip-title">Pasiamor &amp; Dmowl conquistan América</h1>
+      <div class="hero-board">
+        <div class="hero-line hero-line--1" aria-hidden="true"><span class="hero-hover" data-cursor="PAZ" data-cursor-color="#d02700">Pasiamor</span><span>&amp;</span><span class="hero-hover" data-cursor="TATO" data-cursor-color="#2645ef">Dmowl</span></div>
+        <div class="hero-line hero-line--2" aria-hidden="true"><span>Conquistan</span><span>(22—09)</span></div>
+        <div class="hero-line hero-line--3">
+          <button class="hero-asterisk-button" type="button" aria-label="ver la cuenta regresiva al viaje" aria-haspopup="dialog"><svg class="hero-asterisk" viewBox="0 0 100 99" width="100" height="99" aria-hidden="true"><path d="M93.1387 25.2611L100 47.0177L68.9051 56.6549L89.1971 85.7124L70.5109 99L50.219 71.5487L29.3431 99L10.6569 85.7124L31.0949 56.6549L0 47.0177L6.86131 25.2611L37.3723 35.1903V0H62.6277V35.1903L93.1387 25.2611Z" fill="currentColor" fill-opacity="0.9"/></svg></button>
+          <span aria-hidden="true">América</span>
+        </div>
+        <nav class="hero-cards" aria-label="secciones">
+          <button class="hero-card hero-card--food" type="button"><span class="hero-card-hit"></span><span class="hero-card-art"><span class="hero-card-flip"><span class="hero-card-tilt"><span class="hero-card-face hero-card-front"><img src="assets/card-comida.webp" alt="" width="744" height="470" decoding="async"><img class="hero-card-label" src="assets/label-comida.png" alt="" decoding="async"><span class="hero-card-bullet" aria-hidden="true">C</span></span><span class="hero-card-face hero-card-back"><img src="assets/back-comida.webp" alt="" width="744" height="470" decoding="async"><span class="hero-card-back-name">COMIDA</span></span></span></span></span><span class="visually-hidden">comida</span></button>
+          <button class="hero-card hero-card--culture" type="button"><span class="hero-card-hit"></span><span class="hero-card-art"><span class="hero-card-flip"><span class="hero-card-tilt"><span class="hero-card-face hero-card-front"><img src="assets/card-museos.webp" alt="" width="744" height="470" decoding="async"><img class="hero-card-label" src="assets/label-museos.png" alt="" decoding="async"><span class="hero-card-bullet" aria-hidden="true">M</span></span><span class="hero-card-face hero-card-back"><img src="assets/back-museos.webp" alt="" width="744" height="470" decoding="async"><span class="hero-card-back-name">MUSEOS</span></span></span></span></span><span class="visually-hidden">museos</span></button>
+          <button class="hero-card hero-card--shop" type="button"><span class="hero-card-hit"></span><span class="hero-card-art"><span class="hero-card-flip"><span class="hero-card-tilt"><span class="hero-card-face hero-card-front"><img src="assets/card-shops.webp" alt="" width="744" height="470" decoding="async"><img class="hero-card-label" src="assets/label-shops.png" alt="" decoding="async"><span class="hero-card-bullet" aria-hidden="true">S</span></span><span class="hero-card-face hero-card-back"><img src="assets/back-shops.webp" alt="" width="744" height="470" decoding="async"><span class="hero-card-back-name">SHOPS</span></span></span></span></span><span class="visually-hidden">shops</span></button>
+          <button class="hero-card hero-card--walk" type="button"><span class="hero-card-hit"></span><span class="hero-card-art"><span class="hero-card-flip"><span class="hero-card-tilt"><span class="hero-card-face hero-card-front"><img src="assets/card-paseo.webp" alt="" width="744" height="470" decoding="async"><img class="hero-card-label" src="assets/label-paseo.png" alt="" decoding="async"><span class="hero-card-bullet" aria-hidden="true">P</span></span><span class="hero-card-face hero-card-back"><img src="assets/back-paseo.webp" alt="" width="744" height="470" decoding="async"><span class="hero-card-back-name">PASEITO</span></span></span></span></span><span class="visually-hidden">paseos</span></button>
+        </nav>
       </div>
-      <div class="departure">
-        <div class="countdown" aria-label="tiempo hasta el viaje">
-          <div><strong id="days">--</strong><span class="text-detail">días</span></div>
-          <div><strong id="hours">--</strong><span class="text-detail">horas</span></div>
-          <div><strong id="minutes">--</strong><span class="text-detail">minutos</span></div>
+      <span class="hero-cursor" aria-hidden="true"></span>
+      <div class="countdown" id="countdown" role="dialog" aria-modal="true" aria-label="cuenta regresiva al viaje" hidden>
+        <div class="countdown-bar"><button class="countdown-close" type="button">cerrar</button></div>
+        <div class="countdown-stage" role="timer">
+          <div class="countdown-side countdown-side--left">
+            <span class="countdown-paren" aria-hidden="true">(</span>
+            <span class="countdown-unit"><span class="countdown-num" data-unit="days">00</span><span class="countdown-label">días</span></span>
+          </div>
+          <span class="countdown-gap"></span>
+          <figure class="countdown-photo"><img alt="" decoding="async"></figure>
+          <span class="countdown-gap"></span>
+          <div class="countdown-side countdown-side--right">
+            <span class="countdown-unit"><span class="countdown-num" data-unit="hours">00</span><span class="countdown-label">horas</span></span>
+            <span class="countdown-unit"><span class="countdown-num" data-unit="minutes">00</span><span class="countdown-label">minutos</span></span>
+            <span class="countdown-paren" aria-hidden="true">)</span>
+          </div>
         </div>
       </div>
     </section>

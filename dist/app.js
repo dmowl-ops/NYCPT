@@ -1,14 +1,71 @@
 'use strict';
 const $ = (selector) => document.querySelector(selector);
-const departure = new Date('2026-12-23T00:00:00-03:00').getTime();
-function updateCountdown() {
-  const left = Math.max(0, departure - Date.now());
-  $('#days').textContent = String(Math.floor(left / 86400000)).padStart(2, '0');
-  $('#hours').textContent = String(Math.floor(left / 3600000) % 24).padStart(2, '0');
-  $('#minutes').textContent = String(Math.floor(left / 60000) % 60).padStart(2, '0');
-}
-updateCountdown(); setInterval(updateCountdown, 1000);
 const styles = getComputedStyle(document.documentElement);
+// A reload always opens on the full hero (the browser would otherwise restore the old scroll).
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+if (!location.hash) scrollTo(0, 0);
+// Hero words: over Pasiamor or Dmowl the pointer becomes a colored dot with a word.
+const heroCursor = $('.hero-cursor');
+if (heroCursor) {
+  const place = event => { heroCursor.style.translate = `${event.clientX}px ${event.clientY}px`; };
+  for (const target of document.querySelectorAll('[data-cursor]')) {
+    target.addEventListener('pointerenter', event => {
+      if (event.pointerType !== 'mouse') return;
+      heroCursor.textContent = target.dataset.cursor;
+      heroCursor.style.setProperty('--cursor-color', target.dataset.cursorColor);
+      place(event); heroCursor.classList.add('is-visible');
+    });
+    target.addEventListener('pointermove', place);
+    target.addEventListener('pointerleave', () => { heroCursor.classList.remove('is-visible'); });
+  }
+}
+// Countdown: the asterisk opens a full-screen countdown to the departure day (22.12.26, Buenos Aires).
+// Days, hours and minutes; the photo in the middle changes every second.
+const countdown = $('#countdown');
+const asteriskButton = $('.hero-asterisk-button');
+if (countdown && asteriskButton) {
+  const departure = new Date('2026-12-22T00:00:00-03:00').getTime(); // counts to the start of the day
+  const units = {days: 86400000, hours: 3600000, minutes: 60000};
+  const photos = ['01', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'].map(n => `assets/countdown-${n}.webp`);
+  const cells = [...countdown.querySelectorAll('[data-unit]')];
+  const photo = countdown.querySelector('.countdown-photo img');
+  let timer = 0, shown = 0, preloaded = false;
+  function tick() {
+    let left = Math.max(0, departure - Date.now());
+    for (const cell of cells) {
+      const size = units[cell.dataset.unit];
+      const value = Math.floor(left / size); left -= value * size;
+      cell.textContent = String(value).padStart(2, '0');
+    }
+    photo.src = photos[shown++ % photos.length];
+  }
+  function closeCountdown() {
+    countdown.hidden = true; clearInterval(timer);
+    document.removeEventListener('keydown', onKey);
+    asteriskButton.focus({preventScroll:true});
+  }
+  function onKey(event) {
+    if (event.key === 'Escape') closeCountdown();
+    if (event.key === 'Tab') { event.preventDefault(); countdown.querySelector('.countdown-close').focus(); } // only control in the dialog
+  }
+  asteriskButton.addEventListener('click', () => {
+    if (!preloaded) { photos.forEach(src => { const image = new Image(); image.src = src; }); preloaded = true; }
+    shown = 0; tick(); timer = setInterval(tick, 1000);
+    countdown.hidden = false;
+    document.addEventListener('keydown', onKey);
+    countdown.querySelector('.countdown-close').focus({preventScroll:true});
+  });
+  countdown.addEventListener('click', closeCountdown);
+}
+// Hero cards: a press spins the card (its back shows the category); no navigation.
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+for (const card of document.querySelectorAll('.hero-card')) {
+  card.addEventListener('click', () => {
+    if (reduceMotion.matches || card.classList.contains('is-flipping')) return;
+    card.classList.add('is-flipping');
+    card.querySelector('.hero-card-flip').addEventListener('animationend', () => card.classList.remove('is-flipping'), {once:true});
+  });
+}
 const categories = {
   food: {label:'Comida', letter:'c', color:styles.getPropertyValue('--food').trim(), ink:'var(--paper)'},
   culture: {label:'Museos', letter:'m', color:styles.getPropertyValue('--culture').trim(), ink:'var(--ink)'},

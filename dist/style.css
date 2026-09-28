@@ -7,6 +7,7 @@
   --culture: #F6BC26;
   --walk: #0062CF;
   --subway-green: #009952;
+  --shop: var(--subway-green);
   --subway-purple: #9A38A1;
   --bullet-size: 1.75rem;
   --font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -24,10 +25,6 @@
 /* Four text roles; editorial headings scale within their component. */
 body, button, input, select, .leaflet-container {
   font: var(--text-paragraph);
-}
-.countdown strong {
-  font: var(--text-title);
-  letter-spacing: -.055em;
 }
 h2, h3, .text-subtitle {
   font: var(--text-subtitle);
@@ -85,7 +82,7 @@ button:disabled { opacity: .4; cursor: default; }
 
 /* Header and countdown */
 /* Shared 12-column grid; horizontal page inset is --space. */
-.layout-grid, .masthead, .hero-title, .countdown, .place-group {
+.layout-grid, .masthead, .place-group {
   display: grid;
   grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
   column-gap: var(--grid-gutter);
@@ -112,15 +109,173 @@ nav a + a::before { content: "/"; margin-right: .375rem; }
 .route-blue { background: var(--walk); }
 .route-green { background: var(--subway-green); }
 .route-purple { background: var(--subway-purple); }
-.hero { min-height: 100vh; min-height: 100svh; display: flex; flex-direction: column; border-bottom: var(--line); }
-.hero-title { align-items: baseline; padding: .625rem var(--space); }
-.hero-title h1 { grid-column: span 8; }
-.hero-title p { grid-column: span 4; justify-self: end; }
-.departure { display: flex; flex: 1; align-items: center; padding: 0 var(--space) 1rem; min-width: 0; }
-.countdown { width: 100%; }
-.countdown strong { font-variant-numeric: tabular-nums; display: block; padding-top: .08em; }
-.countdown > div { grid-column: span 4; min-width: 0; display: flex; flex-direction: column; gap: 0; }
-.countdown .text-detail { margin: .125rem 0 0; padding: 0; }
+
+/* Hero: Figma frame "600214" of PASIAMOR (1920 × 1080, of which the hero is the top 1040 and
+   the "mapa / ver todo" bar the last 40). Every piece sits at its frame coordinates and --u is
+   one frame pixel, one scale for everything so positions, sizes and overlaps match the design.
+   The hero fills the screen minus the real bar, which peeks in at the bottom
+   (see .section-bar). */
+:root { --peek: 40px; } /* the section bar is 40px, as in the Figma frame */
+.hero { container-type: inline-size; min-height: calc(100vh - var(--peek)); min-height: calc(100dvh - var(--peek)); display: flex; overflow: hidden; border-bottom: var(--line); background: #fafafa; color: #1e1e1e; }
+.hero-board {
+  /* Fills the width; on screens wider than the design the bottom of the cards is cropped a bit
+     more (up to ~140 frame px) before the frame starts shrinking and centering instead. */
+  --u: min(100cqw / 1920, (100dvh - var(--peek)) / 900);
+  --hero-font: Helvetica, "Helvetica Neue", Arial, sans-serif;
+  --hero-type: 700 calc(203.626 * var(--u)) / 1 var(--hero-font);
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+  /* Figma's spring (damping ≈ .71), sampled for CSS. */
+  --ease-spring: linear(0, .03, .1077, .2165, .342, .4728, .6001, .7175, .8208, .9077, .9776, 1.0307, 1.0684, 1.0925, 1.1051, 1.1084, 1.1047, 1.096, 1.084, 1.0703, 1.0561, 1.0424, 1.0297, 1.0187, 1.0094, 1.0019, .9963, .9923, .9898, .9885, .9882, .9887, .9897, .991, .9925, .994, .9955, .9969, .9981, .9991, .9998, 1.0004, 1.0009, 1.0011, 1.0012, 1.0013, 1.0012, 1.0011, 1.001, 1.0008, 1.0006);
+  position: relative; width: calc(1920 * var(--u)); margin-inline: auto;
+}
+.hero-line { position: absolute; display: flex; align-items: center; gap: calc(40 * var(--u)); font: var(--hero-type); letter-spacing: -.05em; white-space: nowrap; }
+.hero-line > span { margin-right: .05em; } /* Figma does not track after the last letter */
+/* Hover on Pasiamor or Dmowl: it turns grey and the pointer becomes a colored
+   dot with a word (app.js reads data-cursor / data-cursor-color). */
+.hero-hover { transition: color .25s cubic-bezier(.33, 0, .2, 1); }
+.hero-hover:hover { color: #dddcdd; cursor: none; }
+.hero-cursor {
+  position: fixed; left: 0; top: 0; z-index: 10; pointer-events: none;
+  display: flex; align-items: center; gap: 6px; margin: -11px 0 0 -8px; /* dot centered on the pointer */
+  font: 700 22px / 1 Helvetica, "Helvetica Neue", Arial, sans-serif; color: var(--cursor-color, #d02700); white-space: nowrap;
+  opacity: 0; scale: .6; transform-origin: 8px 11px; transition: opacity .15s var(--ease-out), scale .2s var(--ease-out);
+}
+.hero-cursor.is-visible { opacity: 1; scale: 1; }
+.hero-cursor::before { content: ""; width: 16px; height: 16px; border-radius: 50%; background: currentColor; flex: none; }
+.hero-line--1 { left: calc(62.93 * var(--u)); top: calc(27 * var(--u)); }
+.hero-line--1 > :first-child { min-width: calc(851 * var(--u)); }
+.hero-line--1 > :last-child { min-width: calc(632.127 * var(--u)); }
+.hero-line--2 { left: calc(62.93 * var(--u)); top: calc(199 * var(--u)); }
+.hero-line--3 { left: calc(280.93 * var(--u)); top: calc(396 * var(--u)); width: calc(1464 * var(--u)); justify-content: flex-end; gap: calc(29 * var(--u)); }
+.hero-asterisk { width: calc(100 * var(--u)); height: calc(99 * var(--u)); flex: none; color: #1c1c1a; }
+.hero-asterisk-button { display: flex; flex: none; padding: 0; margin: 0; border: 0; background: none; color: inherit; cursor: pointer; }
+.hero-asterisk-button .hero-asterisk { display: block; }
+/* Hover: the asterisk turns once and goes blue #404BE3 (and back when the pointer leaves). */
+.hero-asterisk-button { transition: rotate .8s cubic-bezier(.2, .8, .2, 1); }
+.hero-asterisk-button .hero-asterisk { transition: color .25s cubic-bezier(.33, 0, .2, 1); }
+.hero-asterisk-button:is(:hover, :focus-visible) { rotate: 360deg; }
+.hero-asterisk-button:is(:hover, :focus-visible) .hero-asterisk { color: #404be3; }
+
+/* Cards: MetroCards rendered flat from Figma, rotated here. Pressing one spins it (no navigation).
+   The card layer is the 1040-tall hero part of the frame: pinned to the top when the screen is
+   shorter (cards cropped by the bar), to the bottom when taller. --cx/--cy are card centers in it. */
+.hero-cards { --cu: var(--u); --ox: 0; --oy: 0; --card-w: 743.720; --card-h: 469.546; position: absolute; left: 0; right: 0; top: max(0px, 100% - 1040 * var(--cu)); height: calc(1040 * var(--cu)); pointer-events: none; }
+/* The link itself doesn't move: a stationary hit area keeps the hover while the art rises,
+   so the card never flickers out from under the pointer. */
+.hero-card {
+  position: absolute; display: block; pointer-events: none;
+  margin: 0; padding: 0; border: 0; background: none; font: inherit; color: inherit; cursor: pointer;
+  left: calc((var(--cx) - var(--card-w) / 2 + var(--ox)) * var(--cu)); top: calc((var(--cy) - var(--card-h) / 2 + var(--oy)) * var(--cu));
+  width: calc(var(--card-w) * var(--cu)); height: calc(var(--card-h) * var(--cu));
+}
+.hero-card-hit, .hero-card-art { position: absolute; inset: 0; }
+.hero-card-hit, .hero-card-tilt { pointer-events: auto; rotate: var(--r); border-radius: 0 calc(31.5 * var(--cu)) calc(31.5 * var(--cu)) calc(31.5 * var(--cu)); }
+/* Hover: the card rises by --rise until it is fully visible, every card ending at the same
+   height (center at y 590 of the frame). `translate` applies before `rotate`, so it moves straight up.
+   It stops lower if needed so the whole card clears the "mapa" bar: --ext is half the rotated
+   card's height, and the visible bottom is the hero height (or the frame, if shorter).
+   --lift animates 0 → 1. */
+@property --lift { syntax: "<number>"; inherits: false; initial-value: 0; }
+.hero-card {
+  --hero-h: calc(100dvh - var(--peek) - 1px);
+  --rise-to: min(590 * var(--cu), min(var(--hero-h), 1040 * var(--cu)) - (var(--ext) + 16) * var(--cu));
+  --rise: calc(var(--cy) * var(--cu) - var(--rise-to));
+}
+.hero-card-art { --lift: 0; translate: 0 calc(-1 * var(--lift) * var(--rise)); transition: --lift .5s var(--ease-out); }
+.hero-card:is(:hover, :focus-visible) { z-index: 2; }
+.hero-card:is(:hover, :focus-visible) .hero-card-art { --lift: 1; }
+.hero-card:focus-visible { outline: none; }
+.hero-card:focus-visible .hero-card-tilt { outline: 3px solid var(--walk); outline-offset: 0; }
+.hero-card img { display: block; width: 100%; height: 100%; }
+/* Press: the card spins three times around the screen's vertical axis, right to left,
+   flashing its back (category color + name), and lands on the front again.
+   The spin wraps the tilted card, so it turns horizontally whatever the card's angle. */
+.hero-card-art { perspective: calc(2400 * var(--cu)); }
+.hero-card-flip, .hero-card-tilt { position: absolute; inset: 0; transform-style: preserve-3d; }
+.hero-card-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+/* Seen after half a turn, the back keeps the same tilt as the front, as in the Figma back. */
+.hero-card-back { transform: rotate(calc(-1 * var(--r))) rotateY(180deg) rotate(var(--r)); }
+.hero-card-back-name {
+  position: absolute; left: 53.911%; top: 74.214%;
+  font: 700 calc(77.02 * var(--cu)) / 1 var(--hero-font); letter-spacing: -.06em; white-space: nowrap;
+  color: rgb(255 255 255 / .7);
+}
+.hero-card.is-flipping { z-index: 2; }
+.hero-card.is-flipping .hero-card-art { --lift: 1; }
+.hero-card.is-flipping .hero-card-flip { animation: hero-card-flip 1.25s cubic-bezier(.2, .75, .25, 1.04) both; }
+@keyframes hero-card-flip { from { transform: rotateY(0); } to { transform: rotateY(-1080deg); } }
+.hero-card--food { --ext: 420.0; --cx: 250.018; --cy: 839.954; --r: -75deg; --category-color: var(--food); }
+.hero-card--culture { --ext: 400.9; --cx: 685.198; --cy: 1028.893; --r: -82.007deg; --category-color: var(--culture); }
+.hero-card--shop { --ext: 436.0; --cx: 1625.331; --cy: 1091.371; --r: -65.244deg; --category-color: var(--shop); }
+.hero-card--walk { --ext: 439.2; --cx: 1113.481; --cy: 1092.303; --r: -60.773deg; --category-color: var(--walk); }
+/* Hover: the category name gets highlighted in its line color (label art cut from the card). */
+.hero-card .hero-card-label { position: absolute; width: auto; height: auto; opacity: 0; transition: opacity .2s var(--ease-out); }
+.hero-card:is(:hover, :focus-visible) .hero-card-label { opacity: 1; }
+.hero-card--food .hero-card-label { left: 45.447%; top: 8.093%; width: 11.967%; height: 5.644%; }
+.hero-card--culture .hero-card-label { left: 45.447%; top: 8.093%; width: 11.967%; height: 5.644%; }
+.hero-card--shop .hero-card-label { left: 50.422%; top: 8.093%; width: 10.084%; height: 5.644%; }
+.hero-card--walk .hero-card-label { left: 45.447%; top: 8.093%; width: 13.782%; height: 5.644%; }
+.hero-card-bullet {
+  position: absolute; left: 87.001%; top: 7.372%;
+  width: 7.757%; aspect-ratio: 1; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--category-color); color: var(--paper);
+  font: 700 calc(37.432 * var(--cu)) / 1 var(--hero-font); letter-spacing: -.05em;
+}
+
+/* Entrance, from the Figma prototype (2 s timeline, played once). */
+@media (prefers-reduced-motion: no-preference) {
+  .hero-line { animation: hero-rise .52s var(--ease-out) both; }
+  .hero-line--2 { animation-duration: .54s; animation-delay: .12s; }
+  .hero-line--3 { animation-duration: .58s; animation-delay: .24s; }
+  .hero-asterisk { animation: hero-fade .22s var(--ease-out) .72s both, hero-asterisk .62s var(--ease-spring) .72s both; }
+  .hero-card-bullet { animation: hero-fade .18s var(--ease-out) .55s both, hero-bullet .42s var(--ease-spring) .55s both; }
+}
+@keyframes hero-rise { from { opacity: 0; translate: 0 calc(64 * var(--u)); } }
+@keyframes hero-fade { from { opacity: 0; } }
+@keyframes hero-asterisk { from { rotate: 165deg; scale: .72; translate: calc(14 * var(--u)) calc(13.86 * var(--u)); } }
+@keyframes hero-bullet { from { scale: .68; translate: calc(8.8 * var(--cu)) calc(8.8 * var(--cu)); } }
+
+/* Countdown: the asterisk opens a full-screen countdown (days, hours, minutes) in Helvetica
+   #404BE3 on black; the photo between days and hours changes every second. */
+.countdown {
+  --count-ink: #404be3;
+  --count-size: min(13vw, 30svh);
+  --count-pad: clamp(1rem, 4vw, 4.5rem);
+  position: fixed; inset: 0; z-index: 100;
+  display: grid; grid-template-rows: auto 1fr;
+  background: #000; color: var(--count-ink); cursor: pointer;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+.countdown[hidden] { display: none !important; }
+.countdown-bar { display: flex; justify-content: flex-end; padding: 1.5rem var(--count-pad); }
+.countdown-close {
+  border: 0; padding: 0; background: none; color: inherit; cursor: pointer;
+  font: 500 .8125rem / 1 "Helvetica Neue", Helvetica, Arial, sans-serif; letter-spacing: .06em; text-transform: uppercase;
+}
+.countdown-close:is(:hover, :focus-visible) { background: var(--count-ink); color: #000; }
+/* Days | gap | photo | gap | hours minutes: equal gaps keep the photo midway between days and hours. */
+.countdown-stage { display: flex; align-items: center; padding: 0 var(--count-pad) 4.5rem; min-height: 0; }
+.countdown-gap { flex: 1; min-width: 2vw; }
+.countdown-side { display: flex; align-items: center; gap: .08em; font-size: var(--count-size); font-weight: 500; line-height: .8; letter-spacing: -.04em; }
+.countdown-side--right { gap: .3em; }
+.countdown-paren { font-weight: 200; font-size: 1.25em; line-height: .8; transform: translateY(-.04em); }
+.countdown-unit { position: relative; display: block; }
+.countdown-num { display: block; font-variant-numeric: tabular-nums; }
+.countdown-label {
+  position: absolute; right: .04em; top: calc(100% + .9rem);
+  font-size: .8125rem; font-weight: 500; line-height: 1; letter-spacing: .06em; text-transform: uppercase;
+}
+/* The photo keeps its own shape (vertical or horizontal) inside a fixed box. */
+.countdown-photo { margin: 0; flex: none; display: grid; place-items: center; }
+.countdown-photo img { display: block; width: auto; height: auto; max-width: min(24vw, 40svh); max-height: min(24vw, 40svh); }
+@media (max-width: 680px) {
+  .countdown { --count-size: min(30vw, 16svh); }
+  .countdown-stage { flex-direction: column; align-items: stretch; justify-content: center; gap: 2.5rem; padding-bottom: 3rem; }
+  .countdown-gap { display: none; }
+  .countdown-side--right { justify-content: flex-end; }
+  .countdown-photo img { max-width: 64vw; max-height: 30svh; }
+}
 
 /* Shared section structure */
 .section-bar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .75rem var(--space); border-bottom: var(--line); }
@@ -217,8 +372,21 @@ nav a + a::before { content: "/"; margin-right: .375rem; }
   .masthead { row-gap: .5rem; }
   .masthead > .brand, .masthead > nav { grid-column: 1 / -1; }
   .masthead > nav { justify-self: start; }
-  .hero-title { row-gap: .5rem; }
-  .hero-title h1, .hero-title p { grid-column: 1 / -1; justify-self: start; }
+  /* Hero on phones: title stacked in reading order, cards fanned along the bottom. */
+  .hero { min-height: calc(100dvh - 48px); } /* below the fixed mobile nav */
+  .hero-board {
+    --u: calc(100vw / 1000);
+    --hero-type: 700 calc(150 * var(--u)) / 1 var(--hero-font);
+    width: 100%; height: auto; display: flex; flex-direction: column; gap: calc(30 * var(--u));
+    padding: calc(51 * var(--u)) var(--space) 0;
+  }
+  .hero-line { position: relative; left: auto; right: auto; top: auto; flex-wrap: wrap; row-gap: calc(20 * var(--u)); column-gap: calc(28 * var(--u)); width: auto; justify-content: flex-start; }
+  .hero-line--1 > span { min-width: 0 !important; }
+  .hero-cards { --cu: calc(100vw / 870); position: relative; inset: auto; left: auto; right: auto; top: auto; bottom: auto; height: calc(960 * var(--cu)); margin: auto calc(-1 * var(--space)) 0; }
+  /* Two rows of two, so the cards stay big enough to tap. */
+  .hero-card--food, .hero-card--culture { --ox: 30; --oy: -470; }
+  .hero-card--walk, .hero-card--shop { --ox: -790; --oy: -300; }
+  .hero-cards .hero-card { --rise: calc(28 * var(--cu)); } /* phones: keep a small lift */
 
   .leaflet-top.leaflet-right { top: .75rem; right: .75rem; }
   .section-bar { flex-wrap: wrap; }
