@@ -12,7 +12,9 @@ Sitio personal para planear y mostrar nuestro viaje a NYC. Salida: 23 de diciemb
 
 ## Lo que ya funciona
 
-Hero con contador, mapa y listado por categorías: comida, museos/cultura, paseos y shop. Fotografías al hover en la lista, reemplazo por archivo o arrastre, y marcar visitado desde la card large.
+Hero con contador, mapa y listado por categorías: comida, museos/cultura, paseos y shop. Fotografías al hover en la lista, reemplazo por archivo o arrastre, marcar visitado y notas por lugar desde la card large.
+
+Las notas son públicas para quien consulta el mapa. Agregar lugares, cambiar fotos, marcar visitados y editar notas requiere iniciar una sesión admin. La contraseña vive únicamente en `.env` como `ADMIN_PASSWORD`; el servidor entrega una cookie de sesión `HttpOnly`, sin persistencia, y vuelve a pedir acceso al cerrar el navegador o reiniciar el servidor.
 
 Mapa Leaflet con base vectorial MapLibre/OpenFreeMap y respaldo raster de OpenStreetMap. Tres niveles: general, calles (14.5), manzana (18). Minimapa de ubicación en calles y manzana. Click en categoría la aísla; repetir muestra todas. Ver todo encuadra los puntos visibles y permite acercarse si están juntos. Los puntos no se conectan con recorridos.
 

@@ -16,14 +16,14 @@
   --text-paragraph: 700 1rem / 1.5 var(--font-family);
   --text-detail: 700 .8125rem / 1.4 var(--font-family);
   --grid-columns: 12;
-  --grid-gutter: 16px;
-  --space: 16px;
+  --grid-gutter: 1rem;
+  --space: 1rem;
   --line: 1px solid var(--ink);
   --control-height: 3rem;
 }
 
 /* Four text roles; editorial headings scale within their component. */
-body, button, input, select, .leaflet-container {
+body, button, input, select, textarea, .leaflet-container {
   font: var(--text-paragraph);
 }
 h2, h3, .text-subtitle {
@@ -38,10 +38,15 @@ h2, h3, .text-subtitle {
 
 /* Base */
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-padding-top: var(--space); }
+html {
+  /* Keep the 1920 px composition at the same visual scale on 2K and 4K displays. */
+  font-size: clamp(16px, .833333vw, 32px);
+  scroll-behavior: smooth;
+  scroll-padding-top: var(--space);
+}
 body { margin: 0; color: var(--ink); background: var(--paper); }
 h1, h2, h3, p { margin: 0; }
-button, input, select { color: inherit; }
+button, input, select, textarea { color: inherit; }
 button, a { touch-action: manipulation; }
 button, summary { cursor: pointer; }
 a { color: inherit; text-decoration: none; }
@@ -51,6 +56,7 @@ button:disabled { opacity: .4; cursor: default; }
   outline-offset: 4px;
 }
 [hidden] { display: none !important; }
+body:not(.is-admin) .admin-only { display: none !important; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 /* Shared button variants. Symbols are text in the same Helvetica stack. */
 .button {
@@ -93,8 +99,11 @@ button:disabled { opacity: .4; cursor: default; }
 .masthead > nav { grid-column: span 6; justify-self: end; }
 .brand, nav { display: flex; align-items: center; gap: .5rem; }
 nav { gap: .375rem; font: var(--text-detail); }
-nav a { padding: 0 .125rem; }
+nav a, .admin-trigger { padding: 0 .125rem; }
 nav a + a::before { content: "/"; margin-right: .375rem; }
+.admin-trigger { border: 0; background: none; font: inherit; text-transform: lowercase; }
+.admin-trigger::before { content: "/"; margin-right: .375rem; }
+.admin-trigger:is(:hover, :focus-visible) { background: var(--ink); color: var(--paper); }
 .brand { gap: .1875rem; }
 .route-bullet, .line-symbol {
   font: var(--text-paragraph);
@@ -116,14 +125,15 @@ nav a + a::before { content: "/"; margin-right: .375rem; }
    The hero fills the screen minus the real bar, which peeks in at the bottom
    (see .section-bar). */
 :root { --peek: 40px; } /* the section bar is 40px, as in the Figma frame */
-.hero { container-type: inline-size; min-height: calc(100vh - var(--peek)); min-height: calc(100dvh - var(--peek)); display: flex; overflow: hidden; border-bottom: var(--line); background: #fafafa; color: #1e1e1e; }
+.hero { --ease-out: cubic-bezier(.23, 1, .32, 1); --ease-in-out: cubic-bezier(.77, 0, .175, 1); --card-spin-duration: 1000ms; container-type: inline-size; position: relative; min-height: calc(100vh - var(--peek)); min-height: calc(100dvh - var(--peek)); display: flex; overflow: hidden; border-bottom: var(--line); background: #fafafa; color: #1e1e1e; }
+.hero-admin-trigger { position: absolute; top: var(--space); right: var(--space); z-index: 4; padding: .125rem .25rem; font: var(--text-detail); }
+.hero-admin-trigger::before { content: none; }
 .hero-board {
   /* Fills the width; on screens wider than the design the bottom of the cards is cropped a bit
      more (up to ~140 frame px) before the frame starts shrinking and centering instead. */
   --u: min(100cqw / 1920, (100dvh - var(--peek)) / 900);
   --hero-font: Helvetica, "Helvetica Neue", Arial, sans-serif;
   --hero-type: 700 calc(203.626 * var(--u)) / 1 var(--hero-font);
-  --ease-out: cubic-bezier(.16, 1, .3, 1);
   /* Figma's spring (damping ≈ .71), sampled for CSS. */
   --ease-spring: linear(0, .03, .1077, .2165, .342, .4728, .6001, .7175, .8208, .9077, .9776, 1.0307, 1.0684, 1.0925, 1.1051, 1.1084, 1.1047, 1.096, 1.084, 1.0703, 1.0561, 1.0424, 1.0297, 1.0187, 1.0094, 1.0019, .9963, .9923, .9898, .9885, .9882, .9887, .9897, .991, .9925, .994, .9955, .9969, .9981, .9991, .9998, 1.0004, 1.0009, 1.0011, 1.0012, 1.0013, 1.0012, 1.0011, 1.001, 1.0008, 1.0006);
   position: relative; width: calc(1920 * var(--u)); margin-inline: auto;
@@ -146,6 +156,13 @@ nav a + a::before { content: "/"; margin-right: .375rem; }
 .hero-line--1 > :first-child { min-width: calc(851 * var(--u)); }
 .hero-line--1 > :last-child { min-width: calc(632.127 * var(--u)); }
 .hero-line--2 { left: calc(62.93 * var(--u)); top: calc(199 * var(--u)); }
+.hero-date { display: inline-flex; align-items: baseline; letter-spacing: 0; }
+.hero-date > span { display: block; }
+.hero-date > :nth-child(1) { margin-right: -.03em; }
+.hero-date > :nth-child(3) { margin-left: -.02em; }
+.hero-date > :nth-child(4) { margin-left: .02em; margin-right: -.055em; }
+.hero-date > :nth-child(6) { margin-left: -.025em; }
+.hero-date > :nth-child(7) { margin-left: -.035em; }
 .hero-line--3 { left: calc(280.93 * var(--u)); top: calc(396 * var(--u)); width: calc(1464 * var(--u)); justify-content: flex-end; gap: calc(29 * var(--u)); }
 .hero-asterisk { width: calc(100 * var(--u)); height: calc(99 * var(--u)); flex: none; color: #1c1c1a; }
 .hero-asterisk-button { display: flex; flex: none; padding: 0; margin: 0; border: 0; background: none; color: inherit; cursor: pointer; }
@@ -181,15 +198,12 @@ nav a + a::before { content: "/"; margin-right: .375rem; }
   --rise-to: min(590 * var(--cu), min(var(--hero-h), 1040 * var(--cu)) - (var(--ext) + 16) * var(--cu));
   --rise: calc(var(--cy) * var(--cu) - var(--rise-to));
 }
-.hero-card-art { --lift: 0; translate: 0 calc(-1 * var(--lift) * var(--rise)); transition: --lift .5s var(--ease-out); }
-.hero-card:is(:hover, :focus-visible) { z-index: 2; }
-.hero-card:is(:hover, :focus-visible) .hero-card-art { --lift: 1; }
-.hero-card:focus-visible { outline: none; }
+.hero-card-art { --lift: 0; translate: 0 calc(-1 * var(--lift) * var(--rise)); transition: --lift .9s var(--ease-in-out); }
+.hero-card:focus-visible { z-index: 2; outline: none; }
 .hero-card:focus-visible .hero-card-tilt { outline: 3px solid var(--walk); outline-offset: 0; }
 .hero-card img { display: block; width: 100%; height: 100%; }
-/* Press: the card spins three times around the screen's vertical axis, right to left,
-   flashing its back (category color + name), and lands on the front again.
-   The spin wraps the tilted card, so it turns horizontally whatever the card's angle. */
+/* Hover: one horizontal turn reveals the back once, then lands on the front.
+   The stationary hit area keeps the raised card from flickering under the pointer. */
 .hero-card-art { perspective: calc(2400 * var(--cu)); }
 .hero-card-flip, .hero-card-tilt { position: absolute; inset: 0; transform-style: preserve-3d; }
 .hero-card-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
@@ -200,10 +214,21 @@ nav a + a::before { content: "/"; margin-right: .375rem; }
   font: 700 calc(77.02 * var(--cu)) / 1 var(--hero-font); letter-spacing: -.06em; white-space: nowrap;
   color: rgb(255 255 255 / .7);
 }
-.hero-card.is-flipping { z-index: 2; }
+@keyframes hero-card-flip { from { transform: rotateY(0); } to { transform: rotateY(-360deg); } }
+
+@media (hover: hover) and (pointer: fine) {
+  .hero-card:hover .hero-card-art { --lift: 1; }
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .hero-card:hover .hero-card-flip { animation: hero-card-flip var(--card-spin-duration) var(--ease-in-out) both; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-card:focus-visible .hero-card-art { --lift: 1; }
+}
+
 .hero-card.is-flipping .hero-card-art { --lift: 1; }
-.hero-card.is-flipping .hero-card-flip { animation: hero-card-flip 1.25s cubic-bezier(.2, .75, .25, 1.04) both; }
-@keyframes hero-card-flip { from { transform: rotateY(0); } to { transform: rotateY(-1080deg); } }
 .hero-card--food { --ext: 420.0; --cx: 250.018; --cy: 839.954; --r: -75deg; --category-color: var(--food); }
 .hero-card--culture { --ext: 400.9; --cx: 685.198; --cy: 1028.893; --r: -82.007deg; --category-color: var(--culture); }
 .hero-card--shop { --ext: 436.0; --cx: 1625.331; --cy: 1091.371; --r: -65.244deg; --category-color: var(--shop); }
@@ -223,13 +248,27 @@ nav a + a::before { content: "/"; margin-right: .375rem; }
   font: 700 calc(37.432 * var(--cu)) / 1 var(--hero-font); letter-spacing: -.05em;
 }
 
-/* Entrance, from the Figma prototype (2 s timeline, played once). */
+/* Entrance, from the Figma prototype: slower cards with a light stagger. */
 @media (prefers-reduced-motion: no-preference) {
+  .hero-card { animation: hero-card-enter 1.18s var(--ease-out) both; }
+  .hero-card--food { animation-delay: .32s; }
+  .hero-card--culture { animation-delay: .39s; }
+  .hero-card--walk { animation-delay: .46s; }
+  .hero-card--shop { animation-delay: .53s; }
+
   .hero-line { animation: hero-rise .52s var(--ease-out) both; }
   .hero-line--2 { animation-duration: .54s; animation-delay: .12s; }
   .hero-line--3 { animation-duration: .58s; animation-delay: .24s; }
   .hero-asterisk { animation: hero-fade .22s var(--ease-out) .72s both, hero-asterisk .62s var(--ease-spring) .72s both; }
   .hero-card-bullet { animation: hero-fade .18s var(--ease-out) .55s both, hero-bullet .42s var(--ease-spring) .55s both; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-card { animation: hero-fade .2s ease both; }
+}
+
+@keyframes hero-card-enter {
+  from { opacity: 0; transform: translateY(22%); }
 }
 @keyframes hero-rise { from { opacity: 0; translate: 0 calc(64 * var(--u)); } }
 @keyframes hero-fade { from { opacity: 0; } }
@@ -457,6 +496,8 @@ nav a + a::before { content: "/"; margin-right: .375rem; }
 .map-card-heading .map-card-badges { flex-shrink: 0; margin: .15rem 0 0; }
 .map-card-badges { display: flex; flex-wrap: wrap; gap: .25rem; margin-top: .5rem; }
 .map-card p { margin: .75rem 0 0; }
+.place-card-note { white-space: pre-wrap; overflow-wrap: anywhere; }
+.place-card-note::before { content: 'Nota · '; }
 .map-card a { margin-top: .75rem; color: var(--ink); }
 .map-popup a.leaflet-popup-close-button { top: .625rem; right: .25rem; font: var(--text-paragraph); color: var(--ink); }
 .map-popup a.leaflet-popup-close-button:hover { background: var(--ink); color: var(--paper); }
@@ -495,6 +536,11 @@ nav a + a::before { content: "/"; margin-right: .375rem; }
 .sidebar-card { border: var(--line); border-top: .625rem solid var(--ink); padding: 0; }
 
 .sidebar-card .map-card p { margin-top: 1rem; }
+.place-note-form { display: grid; gap: .5rem; margin: 1rem calc(-1 * var(--space)) 0; padding: 1rem var(--space) 0; border-top: var(--line); }
+.place-note-form textarea { width: 100%; min-height: 6rem; resize: vertical; padding: .625rem; border: var(--line); border-radius: 0; background: var(--paper); color: var(--ink); font: var(--text-detail); }
+.place-note-form .button { justify-content: space-between; width: 100%; }
+.place-note-form .form-note { padding: 0; }
+.place-note-form + .map-card-actions { margin-top: 1rem; }
 
 /* Card actions share the same variant in popup and expanded sidebar. */
 .map-popup--place a.leaflet-popup-close-button { color: var(--place-ink); }
@@ -545,6 +591,15 @@ nav a + a::before { content: "/"; margin-right: .375rem; }
 
 .map-sidebar-footer { margin-top: auto; display: flex; flex-direction: column; gap: .75rem; }
 .map-sidebar-footer .map-note { justify-content: flex-start; }
+
+/* One local password unlocks every write action for the browser session. */
+.admin-dialog { width: min(30rem, calc(100% - 2rem)); padding: 0; border: var(--line); border-radius: 0; background: var(--paper); color: var(--ink); }
+.admin-dialog::backdrop { background: rgb(0 0 0 / .55); }
+.admin-dialog-panel { padding: var(--space); }
+.admin-dialog-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-bottom: var(--space); border-bottom: var(--line); }
+.admin-login-form { display: grid; gap: .75rem; padding-top: var(--space); }
+.admin-login-form input { width: 100%; min-height: var(--control-height); padding: .625rem var(--space); border: var(--line); border-radius: 0; background: var(--paper); font: var(--text-paragraph); }
+.admin-login-form .button { justify-content: space-between; }
 
 .map-minimap { position: absolute; top: var(--space); right: var(--space); width: 144px; height: 112px; z-index: 450; border: var(--line); background: #e9e9e9; pointer-events: none; }
 .map-minimap[hidden] { display: none; }

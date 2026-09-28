@@ -1,14 +1,18 @@
 import { createServer } from 'node:http';
 import { readFile, writeFile } from 'node:fs/promises';
 import { mkdirSync, existsSync } from 'node:fs';
-import { dirname, extname, join, resolve } from 'node:path';
+import { dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DatabaseSync } from 'node:sqlite';
-import { randomUUID } from 'node:crypto';
+import { createHash, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
 import { createBackups } from './backups.mjs';
 import { readImageBody, validatePhoto, servePhotoVariant } from './images.mjs';
 
 const root = dirname(fileURLToPath(import.meta.url));
+try {process.loadEnvFile(join(root,'.env'));} catch(error) {if(error.code!=='ENOENT')throw error;}
+const adminPassword=String(process.env.ADMIN_PASSWORD||'');
+const adminCookie='nycpt_admin';
+const adminSessions=new Set();
 const publicRoot = join(root, 'dist');
 const dataRoot = join(root, 'data');
 mkdirSync(dataRoot, { recursive: true });
@@ -19,6 +23,9 @@ const placesSchema = await readFile(join(root, 'db/0001_places.sql'), 'utf8');
 database.exec(placesSchema);
 if (!database.prepare('PRAGMA table_info(places)').all().some(column => column.name === 'visited')) {
   database.exec('ALTER TABLE places ADD COLUMN visited INTEGER NOT NULL DEFAULT 0 CHECK (visited IN (0, 1))');
+}
+if (!database.prepare('PRAGMA table_info(places)').all().some(column => column.name === 'notes')) {
+  database.exec("ALTER TABLE places ADD COLUMN notes TEXT NOT NULL DEFAULT ''");
 }
 
 // SQLite CHECK constraints need a table migration when adding a category.
@@ -47,7 +54,7 @@ if(database.prepare('SELECT COUNT(*) AS count FROM places').get().count===0 && e
       const insert=database.prepare(`INSERT INTO places (${columns.map(name=>`"${name}"`).join(',')}) VALUES (${columns.map(()=>'?').join(',')})`);
       database.exec('BEGIN IMMEDIATE');
       try {
-        for(const row of rows)insert.run(...columns.map(name=>row[name] ?? (name==='visited' ? 0 : null)));
+        for(const row of rows)insert.run(...columns.map(name=>row[name] ?? (name==='visited' ? 0 : name==='notes' ? '' : null)));
         database.exec('COMMIT');
       } catch(error) {database.exec('ROLLBACK');throw error;}
     }
@@ -56,12 +63,13 @@ if(database.prepare('SELECT COUNT(*) AS count FROM places').get().count===0 && e
 
 const selectPlaces = database.prepare(`
   SELECT id, source_url, canonical_url, place_id, name, latitude, longitude,
-         category, area, google_types_json, photo_url, enrichment_status, created_at, visited
+         category, area, google_types_json, photo_url, notes, enrichment_status, created_at, visited
   FROM places ORDER BY created_at ASC
 `);
 const findBySource = database.prepare('SELECT id FROM places WHERE source_url = ?');
 const findById = database.prepare('SELECT * FROM places WHERE id = ?');
 const savePhotoUrl = database.prepare("UPDATE places SET photo_url = ?, enrichment_status = 'photo_ready' WHERE id = ?");
+const saveNotes = database.prepare('UPDATE places SET notes = ? WHERE id = ?');
 const insertPlace = database.prepare(`
   INSERT INTO places (
     id, source_url, canonical_url, place_id, name, latitude, longitude,
@@ -70,7 +78,21 @@ const insertPlace = database.prepare(`
 `);
 
 const types = { '.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.json':'application/json; charset=utf-8','.geojson':'application/geo+json; charset=utf-8','.svg':'image/svg+xml','.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.webp':'image/webp','.gif':'image/gif' };
-function sendJson(response,status,value){response.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store'});response.end(JSON.stringify(value));}
+function sendJson(response,status,value,headers={}){response.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store',...headers});response.end(JSON.stringify(value));}
+function sessionToken(request){
+  const match=String(request.headers.cookie||'').match(new RegExp(`(?:^|;\\s*)${adminCookie}=([^;]+)`));
+  if(!match)return '';
+  try{return decodeURIComponent(match[1]);}catch{return '';}
+}
+function isAdmin(request){return adminSessions.has(sessionToken(request));}
+function passwordMatches(candidate){
+  if(!adminPassword)return false;
+  const expected=createHash('sha256').update(adminPassword).digest();
+  const received=createHash('sha256').update(String(candidate||'')).digest();
+  return timingSafeEqual(expected,received);
+}
+function sessionCookie(token){return `${adminCookie}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Strict`;}
+function clearSessionCookie(){return `${adminCookie}=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0`;}
 function isGoogleMapsUrl(url){const host=url.hostname.toLowerCase();const googleHost=host==='maps.app.goo.gl'||host==='goo.gl'||/^(?:www\.|maps\.)?google\.[a-z.]{2,}$/.test(host);return googleHost&&(host==='maps.app.goo.gl'||url.pathname.startsWith('/maps')||url.searchParams.has('q')||url.searchParams.has('query'));}
 function decodeText(value){try{return decodeURIComponent(value.replace(/\+/g,' ')).replace(/&amp;/g,'&').trim();}catch{return value.replace(/\+/g,' ').trim();}}
 function photoFromHtml(html,baseUrl){
@@ -116,7 +138,7 @@ async function resolveGoogleMapsLink(source){
   throw new Error('El link tiene demasiadas redirecciones.');
 }
 
-function serializePlace(row){return {id:row.id,visited:Boolean(row.visited),sourceUrl:row.source_url,googleMapsUrl:row.canonical_url,placeId:row.place_id,name:row.name,point:[row.latitude,row.longitude],category:row.category,area:row.area,googleTypes:row.google_types_json?JSON.parse(row.google_types_json):[],photoUrl:row.photo_url,enrichmentStatus:row.enrichment_status,createdAt:row.created_at};}
+function serializePlace(row){return {id:row.id,visited:Boolean(row.visited),sourceUrl:row.source_url,googleMapsUrl:row.canonical_url,placeId:row.place_id,name:row.name,point:[row.latitude,row.longitude],category:row.category,area:row.area,googleTypes:row.google_types_json?JSON.parse(row.google_types_json):[],photoUrl:row.photo_url,notes:row.notes||'',enrichmentStatus:row.enrichment_status,createdAt:row.created_at};}
 async function readBody(request){const chunks=[];let size=0;for await(const chunk of request){size+=chunk.length;if(size>16384)throw new Error('La solicitud es demasiado grande.');chunks.push(chunk);}return JSON.parse(Buffer.concat(chunks).toString('utf8'));}
 
 
@@ -203,6 +225,29 @@ async function wikimediaPhotoForPlace(row){
 }
 
 async function handleApi(request,response,url){
+  if(url.pathname==='/api/admin/session'){
+    if(request.method!=='GET'){sendJson(response,405,{error:'Método no permitido.'});return true;}
+    sendJson(response,200,{authenticated:isAdmin(request),configured:Boolean(adminPassword)});return true;
+  }
+  if(url.pathname==='/api/admin/login'){
+    if(request.method!=='POST'){sendJson(response,405,{error:'Método no permitido.'});return true;}
+    if(!adminPassword){sendJson(response,503,{error:'Configurá ADMIN_PASSWORD en el archivo .env.'});return true;}
+    try{
+      const body=await readBody(request);
+      if(!passwordMatches(body.password)){sendJson(response,401,{error:'Contraseña incorrecta.'});return true;}
+      const token=randomBytes(32).toString('base64url');adminSessions.add(token);
+      sendJson(response,200,{authenticated:true},{'set-cookie':sessionCookie(token)});
+    }catch(error){sendJson(response,400,{error:error.message});}
+    return true;
+  }
+  if(url.pathname==='/api/admin/logout'){
+    if(request.method!=='POST'){sendJson(response,405,{error:'Método no permitido.'});return true;}
+    adminSessions.delete(sessionToken(request));
+    sendJson(response,200,{authenticated:false},{'set-cookie':clearSessionCookie()});return true;
+  }
+  if(['POST','PUT','PATCH','DELETE'].includes(request.method)&&url.pathname.startsWith('/api/places')&&!isAdmin(request)){
+    sendJson(response,401,{error:'Ingresá como admin para editar el mapa.'});return true;
+  }
   const visitedMatch = url.pathname.match(/^\/api\/places\/([^/]+)\/visited$/);
   if (visitedMatch) {
     if (request.method !== 'PATCH') {sendJson(response,405,{error:'Método no permitido.'});return true;}
@@ -214,6 +259,18 @@ async function handleApi(request,response,url){
       database.prepare('UPDATE places SET visited = ? WHERE id = ?').run(Number(body.visited),id);
       sendJson(response,200,{visited:body.visited});
     } catch (error) {sendJson(response,400,{error:error.message});}
+    return true;
+  }
+  const notesMatch=url.pathname.match(/^\/api\/places\/([^/]+)\/notes$/);
+  if(notesMatch){
+    if(request.method!=='PATCH'){sendJson(response,405,{error:'Método no permitido.'});return true;}
+    try{
+      const id=decodeURIComponent(notesMatch[1]);
+      if(!findById.get(id)){sendJson(response,404,{error:'Lugar no encontrado.'});return true;}
+      const body=await readBody(request);const notes=String(body.notes||'').trim();
+      if(notes.length>2000)throw new Error('La nota puede tener hasta 2000 caracteres.');
+      saveNotes.run(notes,id);sendJson(response,200,{notes});
+    }catch(error){sendJson(response,400,{error:error.message});}
     return true;
   }
   const photoMatch=url.pathname.match(/^\/api\/places\/([^/]+)\/photo$/);
@@ -263,9 +320,10 @@ async function serveStatic(response,pathname){
   const isPhoto=pathname.startsWith('/photos/');
   const requested=pathname==='/'?'/index.html':pathname;
   const base=isPhoto?photoRoot:publicRoot;
-  const relative=isPhoto?requested.slice('/photos'.length):requested;
-  const file=resolve(base,`.${relative}`);
-  if(!file.startsWith(`${base}/`)){response.writeHead(403).end('Forbidden');return;}
+  const requestedPath=isPhoto?requested.slice('/photos'.length):requested;
+  const file=resolve(base,`.${requestedPath}`);
+  const pathWithinBase=relative(base,file);
+  if(pathWithinBase==='..'||pathWithinBase.startsWith(`..${sep}`)||isAbsolute(pathWithinBase)){response.writeHead(403).end('Forbidden');return;}
   try{const body=await readFile(file);response.writeHead(200,{'content-type':types[extname(file)]||'application/octet-stream','cache-control':isPhoto?'public, max-age=31536000, immutable':'no-cache'});response.end(body);}catch{response.writeHead(404).end('Not found');}
 }
 const saveBackup=createBackups(database,root);

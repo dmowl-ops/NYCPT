@@ -19,12 +19,12 @@ if (heroCursor) {
     target.addEventListener('pointerleave', () => { heroCursor.classList.remove('is-visible'); });
   }
 }
-// Countdown: the asterisk opens a full-screen countdown to the departure day (22.12.26, Buenos Aires).
+// Countdown: the asterisk opens a full-screen countdown to the departure day (23.12.26, Buenos Aires).
 // Days, hours and minutes; the photo in the middle changes every second.
 const countdown = $('#countdown');
 const asteriskButton = $('.hero-asterisk-button');
 if (countdown && asteriskButton) {
-  const departure = new Date('2026-12-22T00:00:00-03:00').getTime(); // counts to the start of the day
+  const departure = new Date('2026-12-23T00:00:00-03:00').getTime(); // counts to the start of the day
   const units = {days: 86400000, hours: 3600000, minutes: 60000};
   const photos = ['01', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'].map(n => `assets/countdown-${n}.webp`);
   const cells = [...countdown.querySelectorAll('[data-unit]')];
@@ -57,14 +57,32 @@ if (countdown && asteriskButton) {
   });
   countdown.addEventListener('click', closeCountdown);
 }
-// Hero cards: a press spins the card (its back shows the category); no navigation.
+
+// Every click adds a full turn. Overlapping turns compose, so rapid clicks accelerate smoothly.
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+const heroMotion = getComputedStyle($('.hero'));
+const cardSpinDuration = Number.parseFloat(heroMotion.getPropertyValue('--card-spin-duration'));
+const cardSpinEasing = heroMotion.getPropertyValue('--ease-in-out').trim();
 for (const card of document.querySelectorAll('.hero-card')) {
+  const flip = card.querySelector('.hero-card-flip');
+  let activeClickSpins = 0;
   card.addEventListener('click', () => {
-    if (reduceMotion.matches || card.classList.contains('is-flipping')) return;
-    card.classList.add('is-flipping');
-    card.querySelector('.hero-card-flip').addEventListener('animationend', () => card.classList.remove('is-flipping'), {once:true});
+    if (reduceMotion.matches) return;
+    card.classList.add('is-flipping'); activeClickSpins += 1;
+    const spin = flip.animate(
+      [{transform:'rotateY(0deg)'}, {transform:'rotateY(-360deg)'}],
+      {duration:cardSpinDuration, easing:cardSpinEasing, composite:'add'}
+    );
+    const settle = () => {
+      activeClickSpins -= 1;
+      if (activeClickSpins === 0) card.classList.remove('is-flipping');
+    };
+    spin.finished.then(settle, settle);
   });
+}
+
+function uiScale() {
+  return matchMedia('(max-width: 680px)').matches ? 1 : parseFloat(getComputedStyle(document.documentElement).fontSize) / 16;
 }
 const categories = {
   food: {label:'Comida', letter:'c', color:styles.getPropertyValue('--food').trim(), ink:'var(--paper)'},
@@ -114,7 +132,8 @@ function stationIcon(station) {
   badge.style.background = category.color;
   badge.style.color = category.ink;
   badge.textContent = String(stationNumber(station));
-  const size=[34,30,28][zoomLevel], hit=[48,44,40][zoomLevel];
+  const scale=uiScale();
+  const size=Math.round([34,30,28][zoomLevel]*scale), hit=Math.round([48,44,40][zoomLevel]*scale);
   badge.style.width=badge.style.height=size+'px';
   return L.divIcon({className:'map-station' + (station.visited ? ' is-visited' : ''), html:badge, iconSize:[hit,hit], iconAnchor:[hit/2,hit/2]});
 }
@@ -168,6 +187,15 @@ $('#category-input').addEventListener('change', updateMapControlsAccent);
 $('#link-form').addEventListener('reset', () => queueMicrotask(updateMapControlsAccent));
 updateMapControlsAccent();
 let map = null; let baseMap = null; let selectedStation = null; const layers = {};
+let adminAuthenticated=false;
+let adminConfigured=true;
+function setAdminState(authenticated,configured=adminConfigured) {
+  adminAuthenticated=Boolean(authenticated);adminConfigured=Boolean(configured);
+  document.body.classList.toggle('is-admin',adminAuthenticated);
+  const trigger=$('#admin-trigger');
+  trigger.textContent=adminAuthenticated?'salir':'admin';
+  trigger.setAttribute('aria-label',adminAuthenticated?'Cerrar sesión de administrador':'Abrir acceso de administrador');
+}
 let mapBaseReady=false, mapDataReady=false;
 function revealMap() {
   if (!mapBaseReady || !mapDataReady) return;
@@ -181,7 +209,7 @@ function mapPadding() {
   const controls = $('.map-bottom');
   const controlHeight = controls?.getBoundingClientRect().height || 50;
   const bottomInset = controls ? parseFloat(getComputedStyle(controls).bottom) || 16 : 16;
-  const margin = 40;
+  const margin = 40*uiScale();
   return {paddingTopLeft:[margin,matchMedia('(max-width: 680px)').matches ? 108 : margin], paddingBottomRight:[margin,controlHeight + bottomInset + margin], maxZoom:15};
 }
 let overviewZoom = 13;
@@ -249,7 +277,7 @@ function syncVisited(station) {
   stationMarkers.get(station.id)?.setIcon(stationIcon(station));
 }
 async function toggleVisited(station) {
-  if (!station || pendingVisits.has(station.id)) return;
+  if (!adminAuthenticated || !station || pendingVisits.has(station.id)) return;
   pendingVisits.add(station.id); syncVisited(station);
   try {
     const response = await fetch(`/api/places/${encodeURIComponent(station.id)}/visited`, {
@@ -358,8 +386,43 @@ function createMapCard({name,variant='subway',badges=[],details=[],action,color=
   }
   return card;
 }
+function createPlaceCard(station) {
+  const category=categories[station.category];
+  const details=[{className:'place-card-address'}];
+  if(station.notes)details.push({text:station.notes,className:'place-card-note'});
+  return createMapCard({
+    name:station.name,variant:'place',color:category.color,ink:category.ink,badges:[{label:category.letter}],details,
+    action:{label:'Ver lugar',href:station.googleMapsUrl || 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(station.point.join(','))}
+  });
+}
+function createNotesEditor(station) {
+  const form=element('form','place-note-form admin-only');
+  const id='place-notes-'+station.id;
+  const label=element('label','text-detail','Notas');label.htmlFor=id;
+  const textarea=element('textarea');textarea.id=id;textarea.name='notes';textarea.maxLength=2000;textarea.value=station.notes||'';
+  textarea.placeholder='Qué pedir, horarios, reservas…';
+  const submit=element('button','button button--control button--solid');submit.type='submit';
+  submit.append(element('span','','Guardar nota'),element('span','ui-symbol','→'));
+  const status=element('p','text-detail form-note');status.setAttribute('role','alert');
+  form.append(label,textarea,submit,status);
+  form.addEventListener('submit',async event=>{
+    event.preventDefault();submit.disabled=true;status.textContent='';
+    try{
+      const response=await fetch(`/api/places/${encodeURIComponent(station.id)}/notes`,{
+        method:'PATCH',headers:{'content-type':'application/json',accept:'application/json'},body:JSON.stringify({notes:textarea.value})
+      });
+      const result=await readApiResponse(response);
+      if(!response.ok)throw new Error(result.error||'No pudimos guardar la nota.');
+      station.notes=result.notes;focusStation(station);notify('nota guardada.');
+    }catch(error){status.textContent=error.message;}
+    finally{submit.disabled=false;}
+  });
+  return form;
+}
 function bindCardPopup(layer,card,{variant='subway',autoPan=true}={}) {
-  layer.bindPopup(card,{className:'map-popup map-popup--'+variant,maxWidth:matchMedia('(max-width: 680px)').matches ? Math.min(240,map.getSize().x-48) : 300,minWidth:160,autoPan,closeButton:false,closeOnClick:true});
+  const phone=matchMedia('(max-width: 680px)').matches;
+  const scale=uiScale();
+  layer.bindPopup(card,{className:'map-popup map-popup--'+variant,maxWidth:phone ? Math.min(240,map.getSize().x-48) : 300*scale,minWidth:phone ? 160 : 160*scale,autoPan,closeButton:false,closeOnClick:true});
 }
 function showSidebarCard(card, {color='var(--paper)',ink='var(--ink)',station=null} = {}) {
   const panel=$('.station-panel');
@@ -370,10 +433,11 @@ function showSidebarCard(card, {color='var(--paper)',ink='var(--ink)',station=nu
   panel.hidden=false;
   panel.dataset.stationId=station?.id || '';
   if(station) {
-    const visited=element('button','button button--control card-action card-action--secondary visit-toggle');
+    const actions=panel.querySelector('.map-card-actions');
+    const visited=element('button','button button--control card-action card-action--secondary visit-toggle admin-only');
     visited.type='button';updateVisitButton(visited,station);
     visited.addEventListener('click',()=>toggleVisited(station));
-    panel.querySelector('.map-card-actions').prepend(visited);
+    actions.prepend(visited);actions.before(createNotesEditor(station));
   }
 }
 function bindStationTooltip(station) {
@@ -389,11 +453,7 @@ function focusStation(station) {
   selectedStation=station;
   const marker=stationMarkers.get(station.id);
   const category=categories[station.category];
-  const card=createMapCard({
-    name:station.name,variant:'place',color:category.color,ink:category.ink,badges:[{label:category.letter}],
-    details:[{className:'place-card-address'}],
-    action:{label:'Ver lugar',href:station.googleMapsUrl || 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(station.point.join(','))}
-  });
+  const card=createPlaceCard(station);
   marker.unbindPopup();
   bindCardPopup(marker,card,{variant:'place',autoPan:false});
   zoomLevel=2;updateZoomControls();
@@ -404,8 +464,8 @@ function focusStation(station) {
   const popup=marker.getPopup().getElement();
   popup.style.setProperty('--place-color',category.color);
   popup.style.setProperty('--place-ink',category.ink);
-  updateStationTooltip(station);
   showSidebarCard(card,{color:category.color,ink:category.ink,station});
+  updateStationTooltip(station);
 }
 function showStation(station, pan = false) {
   if(pan && map) {
@@ -451,6 +511,7 @@ function droppedImageUrl(dataTransfer) {
   return safePhotoUrl(dataTransfer.getData('text/plain'));
 }
 async function uploadPhoto(group,file,url) {
+  if(!adminAuthenticated)return;
   const station=group.activeStation;if(!station)return;
   group.status.hidden=false;group.status.textContent='guardando foto…';
   try{
@@ -496,7 +557,7 @@ for (const [key, category] of Object.entries(categories)) {
   const captionName = element('span');
   const source = element('a', '', 'fuente ');source.append(externalArrow());
   source.target = '_blank'; source.rel = 'noopener noreferrer'; source.hidden = true;
-  const uploadButton=element('button','button button--text place-photo-upload','Cambiar foto');
+  const uploadButton=element('button','button button--text place-photo-upload admin-only','Cambiar foto');
   uploadButton.type='button';
   const fileInput=element('input','place-photo-input');
   fileInput.type='file';fileInput.accept='image/jpeg,image/png,image/webp,image/gif';fileInput.hidden=true;
@@ -507,12 +568,13 @@ for (const [key, category] of Object.entries(categories)) {
   rows.append(empty); group.append(side, rows); $('#station-list').append(group);
   const groupState={rows,empty,figure,frame,status,captionName,source,uploadButton,fileInput,active:null,activeStation:null,activeRow:null,activeButton:null,image:null};
   placeGroups.set(key,groupState);
-  uploadButton.addEventListener('click',()=>fileInput.click());
-  fileInput.addEventListener('change',()=>{const file=fileInput.files?.[0];if(file)uploadPhoto(groupState,file,null);fileInput.value='';});
-  frame.addEventListener('dragover',event=>{event.preventDefault();event.dataTransfer.dropEffect='copy';});
-  frame.addEventListener('dragenter',event=>{event.preventDefault();frame.classList.add('is-drop-target');status.hidden=false;status.textContent='soltá para reemplazar';});
+  uploadButton.addEventListener('click',()=>{if(adminAuthenticated)fileInput.click();});
+  fileInput.addEventListener('change',()=>{const file=fileInput.files?.[0];if(adminAuthenticated&&file)uploadPhoto(groupState,file,null);fileInput.value='';});
+  frame.addEventListener('dragover',event=>{if(!adminAuthenticated)return;event.preventDefault();event.dataTransfer.dropEffect='copy';});
+  frame.addEventListener('dragenter',event=>{if(!adminAuthenticated)return;event.preventDefault();frame.classList.add('is-drop-target');status.hidden=false;status.textContent='soltá para reemplazar';});
   frame.addEventListener('dragleave',event=>{if(event.relatedTarget&&frame.contains(event.relatedTarget))return;frame.classList.remove('is-drop-target');status.hidden=Boolean(groupState.image);});
   frame.addEventListener('drop',event=>{
+    if(!adminAuthenticated)return;
     event.preventDefault();frame.classList.remove('is-drop-target');
     const file=[...(event.dataTransfer.files||[])].find(item=>item.type.startsWith('image/'));
     const url=file?null:droppedImageUrl(event.dataTransfer);
@@ -865,7 +927,7 @@ if (window.L) {
       credits.classList.add('map-note-mobile');
     } else {
       sidebar.prepend(heading,legend);
-      sidebar.append(footer);footer.append(credits);
+      sidebar.append(footer);footer.prepend(credits);
       bottom.append(overlayOptions);viewport.append(backButton);
       credits.classList.remove('map-note-mobile');
     }
@@ -920,6 +982,40 @@ async function loadPlaces(){
     renderLinks();fitPlaces();mapDataReady=true;revealMap();setTimeout(()=>stations.forEach(warmPhoto),0);
   }catch(error){mapDataReady=true;revealMap();$('#form-error').textContent=error.message||'la base de datos no está disponible. reiniciá el proyecto con npm run dev.';}
 }
+function openAdminDialog() {
+  const dialog=$('#admin-dialog');
+  $('#admin-error').textContent=adminConfigured?'':'Configurá ADMIN_PASSWORD en el archivo .env y reiniciá el servidor.';
+  if(!dialog.open)dialog.showModal();
+  queueMicrotask(()=>$('#admin-password').focus());
+}
+async function loadAdminSession() {
+  try{
+    const response=await fetch('/api/admin/session',{headers:{accept:'application/json'}});
+    const result=await readApiResponse(response);setAdminState(result.authenticated,result.configured);
+  }catch{setAdminState(false,false);}
+}
+$('#admin-trigger').addEventListener('click',async()=>{
+  if(!adminAuthenticated){openAdminDialog();return;}
+  try{
+    const response=await fetch('/api/admin/logout',{method:'POST',headers:{accept:'application/json'}});
+    const result=await readApiResponse(response);if(!response.ok)throw new Error(result.error||'No pudimos cerrar la sesión.');
+    setAdminState(false);notify('sesión admin cerrada.');
+  }catch(error){notify(error.message);}
+});
+$('#admin-close').addEventListener('click',()=>$('#admin-dialog').close());
+$('#admin-login-form').addEventListener('submit',async event=>{
+  event.preventDefault();
+  const submit=event.currentTarget.querySelector('button[type="submit"]');
+  const password=$('#admin-password').value;submit.disabled=true;$('#admin-error').textContent='';
+  try{
+    const response=await fetch('/api/admin/login',{
+      method:'POST',headers:{'content-type':'application/json',accept:'application/json'},body:JSON.stringify({password})
+    });
+    const result=await readApiResponse(response);if(!response.ok)throw new Error(result.error||'No pudimos iniciar la sesión.');
+    setAdminState(true,true);event.currentTarget.reset();$('#admin-dialog').close();notify('modo admin activo.');
+  }catch(error){$('#admin-error').textContent=error.message;}
+  finally{submit.disabled=false;}
+});
 $('#link-form').addEventListener('submit',async(event)=>{
   event.preventDefault();
   const form=new FormData(event.currentTarget);const url=String(form.get('url')).trim();const category=String(form.get('category'));
@@ -931,4 +1027,4 @@ $('#link-form').addEventListener('submit',async(event)=>{
   }catch(error){$('#form-error').textContent=error.message;}
   finally{submit.disabled=false;submit.innerHTML='Agregar <span class="ui-symbol" aria-hidden="true">→</span>';}
 });
-loadPlaces();
+loadAdminSession().finally(loadPlaces);

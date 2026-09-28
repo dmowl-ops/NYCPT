@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS places (
   area TEXT NOT NULL DEFAULT '',
   google_types_json TEXT,
   photo_url TEXT,
+  notes TEXT NOT NULL DEFAULT '',
   enrichment_status TEXT NOT NULL DEFAULT 'link_only',
   created_at TEXT NOT NULL
 );

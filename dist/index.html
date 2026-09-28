@@ -21,7 +21,7 @@
       <h1 class="visually-hidden" id="trip-title">Pasiamor &amp; Dmowl conquistan América</h1>
       <div class="hero-board">
         <div class="hero-line hero-line--1" aria-hidden="true"><span class="hero-hover" data-cursor="PAZ" data-cursor-color="#d02700">Pasiamor</span><span>&amp;</span><span class="hero-hover" data-cursor="TATO" data-cursor-color="#2645ef">Dmowl</span></div>
-        <div class="hero-line hero-line--2" aria-hidden="true"><span>Conquistan</span><span>(22—09)</span></div>
+        <div class="hero-line hero-line--2" aria-hidden="true"><span>Conquistan</span><span class="hero-date"><span>(</span><span>2</span><span>3</span><span>—</span><span>1</span><span>2</span><span>)</span></span></div>
         <div class="hero-line hero-line--3">
           <button class="hero-asterisk-button" type="button" aria-label="ver la cuenta regresiva al viaje" aria-haspopup="dialog"><svg class="hero-asterisk" viewBox="0 0 100 99" width="100" height="99" aria-hidden="true"><path d="M93.1387 25.2611L100 47.0177L68.9051 56.6549L89.1971 85.7124L70.5109 99L50.219 71.5487L29.3431 99L10.6569 85.7124L31.0949 56.6549L0 47.0177L6.86131 25.2611L37.3723 35.1903V0H62.6277V35.1903L93.1387 25.2611Z" fill="currentColor" fill-opacity="0.9"/></svg></button>
           <span aria-hidden="true">América</span>
@@ -33,6 +33,7 @@
           <button class="hero-card hero-card--walk" type="button"><span class="hero-card-hit"></span><span class="hero-card-art"><span class="hero-card-flip"><span class="hero-card-tilt"><span class="hero-card-face hero-card-front"><img src="assets/card-paseo.webp" alt="" width="744" height="470" decoding="async"><img class="hero-card-label" src="assets/label-paseo.png" alt="" decoding="async"><span class="hero-card-bullet" aria-hidden="true">P</span></span><span class="hero-card-face hero-card-back"><img src="assets/back-paseo.webp" alt="" width="744" height="470" decoding="async"><span class="hero-card-back-name">PASEITO</span></span></span></span></span><span class="visually-hidden">paseos</span></button>
         </nav>
       </div>
+      <button class="admin-trigger hero-admin-trigger" id="admin-trigger" type="button" aria-haspopup="dialog">admin</button>
       <span class="hero-cursor" aria-hidden="true"></span>
       <div class="countdown" id="countdown" role="dialog" aria-modal="true" aria-label="cuenta regresiva al viaje" hidden>
         <div class="countdown-bar"><button class="countdown-close" type="button">cerrar</button></div>
@@ -60,7 +61,8 @@
 
           <aside class="station-panel sidebar-card" aria-live="polite" hidden></aside>
           <div class="map-sidebar-footer">
-          <details class="map-add" id="add-point">
+            <div class="map-note text-detail" id="map-credits"></div>
+          <details class="map-add admin-only" id="add-point">
             <summary class="button button--control button--solid">Agregar lugar <span class="ui-symbol" aria-hidden="true"></span></summary>
             <form id="link-form" class="map-link-form">
           <label class="visually-hidden" for="url-input">link de Google Maps</label>
@@ -71,7 +73,6 @@
         </form>
             <p class="text-detail form-note" id="form-error" role="alert"></p>
           </details>
-            <div class="map-note text-detail" id="map-credits"></div>
           </div>
         </div>
         <div class="map-viewport is-loading" aria-busy="true">
@@ -100,6 +101,20 @@
     </section>
 
   </main>
+  <dialog class="admin-dialog" id="admin-dialog" aria-labelledby="admin-heading">
+    <div class="admin-dialog-panel">
+      <header class="admin-dialog-heading">
+        <h2 id="admin-heading">Acceso admin</h2>
+        <button class="button button--icon" id="admin-close" type="button" aria-label="Cerrar">×</button>
+      </header>
+      <form class="admin-login-form" id="admin-login-form">
+        <label for="admin-password">Contraseña</label>
+        <input id="admin-password" name="password" type="password" autocomplete="current-password" required>
+        <button class="button button--control button--solid" type="submit">Entrar <span class="ui-symbol" aria-hidden="true">→</span></button>
+        <p class="text-detail form-note" id="admin-error" role="alert"></p>
+      </form>
+    </div>
+  </dialog>
   <div class="toast text-detail" id="toast" role="status" hidden></div>
 </body>
 </html>
